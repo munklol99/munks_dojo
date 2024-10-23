@@ -26,16 +26,20 @@ Matchmaking / Team Balancing Algorithm:
 Requirements:
   1. 1 player per role, each team has 5 unique roles (Top, Jungle, Mid, ADC, Support)
   2. Players that have been Auto-Filled (Have not played their 'Preferred Role' in the previous 2 games they have participated in) are guaranteed to receive their preferred role
+
 This matchmaking algorithm balances in 1 of 3 methods
-  Method 1: Prioritizing Balanced Matchups
+  
+Method 1: Prioritizing Balanced Matchups
   1. Run iterations of each possible matchup given a player's preferred role (5!)
   2. Balance the teams if 3 matchups are within a set X ELO difference
-  Method 2: Prioritizing Role Assignment Accuracy
+
+Method 2: Prioritizing Role Assignment Accuracy
   1. Try to have as many players get their roles in this order (Preferences for Non-Fill Players -> Playable Roles -> Fill 'Fill' Players -> Fill Remaining Unassigned Players to Unassigned Roles)
   2. The players who get priority to their preferences should be those with the least playable roles
-  Method 3: Prioritizing Avg. Team ELO Balancing (difference between teams set to 'X' ELO)
+Method 3: Prioritizing Avg. Team ELO Balancing (difference between teams set to 'X' ELO)
   1. First find the iteration of the teams that provide the smallest Average ELO Difference between the 2 teams
   2. Assign roles afterwards like in Method 2
+
 Teams are displayed in 2 tables, in role sorted order (Top --> Support)
 
 Post-Game
