@@ -36,6 +36,7 @@ Method 1: Prioritizing Balanced Matchups
 Method 2: Prioritizing Role Assignment Accuracy
   1. Try to have as many players get their roles in this order (Preferences for Non-Fill Players -> Playable Roles -> Fill 'Fill' Players -> Fill Remaining Unassigned Players to Unassigned Roles)
   2. The players who get priority to their preferences should be those with the least playable roles
+
 Method 3: Prioritizing Avg. Team ELO Balancing (difference between teams set to 'X' ELO)
   1. First find the iteration of the teams that provide the smallest Average ELO Difference between the 2 teams
   2. Assign roles afterwards like in Method 2
