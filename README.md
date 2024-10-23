@@ -18,7 +18,8 @@ Queue:
   3. Edit Members in Queue
   4. Remove Member from Queue
   5. Display Queue in tabular view in Desc. Order by ELO
-  6. Display "X members needed to start game" & a Print when the game can be started
+  
+6. Display "X members needed to start game" & a Print when the game can be started
   7. Option to Start the game, triggering the Matchmaking / Team Balancing
 
 Matchmaking / Team Balancing Algorithm:
