@@ -2,7 +2,6 @@ Hello World!
 
 This repo is dedicated to an In-House Bot I am making with a friend of mine for a small League of Legends Discord community.
 
-The intended features of this bot are:
 Member Management:
 ======
   1. Entering New Member Info (Discord ID, Discord Name, Roles (2+), Preferred Role (1)
