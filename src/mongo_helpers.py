@@ -18,6 +18,11 @@ def get_database():
    # Create the database for our example (we will use the same database throughout the tutorial
    return client['Dojo']
 
+dbname = get_database()
+    
+dojo_collection = dbname['userData']
+history_collection = dbname['user_elo_history']
+
 def create_new_user(disc_username, lol_username, roles, pref_role):
     user = dojo_collection.find_one({"Discord Username": disc_username})
     if user:
@@ -86,6 +91,11 @@ def add_to_elo_history(disc_username, new_elo):
         {"Discord Username": disc_username},
         {"$push": {"Elo History": new_elo}}
     )
+    
+def get_user_data(disc_usernames):
+    items = dojo_collection.find({'Discord Username': {'$in': disc_usernames}})
+    df = pd.DataFrame(items)
+    return df
 
 if __name__ == '__main__':
     dbname = get_database()
