@@ -1,5 +1,5 @@
 from mongo_helpers import get_user_data, get_database
-from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value
+from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 
 class Match():
     def __init__(self, discord_users: list):
@@ -77,7 +77,7 @@ class Match():
         prob += team_elo_diff >= team_b_elo - team_a_elo
 
         # Solve the problem
-        prob.solve()
+        prob.solve(PULP_CBC_CMD(msg=False))
 
         # Extract the teams based on the solution
         team_a, team_b = [], []
