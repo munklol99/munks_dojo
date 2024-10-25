@@ -19,6 +19,10 @@ def get_database():
    return client['Dojo']
 
 def create_new_user(disc_username, lol_username, roles, pref_role):
+    user = dojo_collection.find_one({"Discord Username": disc_username})
+    if user:
+        return f"Username {disc_username} aready exists"
+    
     user = {
         'Discord Username': disc_username,
         'Username': lol_username,
@@ -32,9 +36,17 @@ def create_new_user(disc_username, lol_username, roles, pref_role):
     
     rerank_users()
     
+    return "User created successfully"
+    
 def delete_user(disc_username):
+    user = dojo_collection.find_one({"Discord Username": disc_username})
+    if not user:
+        return f"Username {disc_username} does not exists"
+    
     dojo_collection.delete_many({'Discord Username': disc_username})
     rerank_users()
+    
+    return "User deleted successfully"
     
 def rerank_users():
     sorted_docs = dojo_collection.find().sort("Current ELO", -1)
@@ -44,7 +56,12 @@ def rerank_users():
         dojo_collection.update_one({"_id": doc["_id"]}, {"$set": {"Rank": rank}})
         
 def update_elo(disc_username, elo_change):
+    user = dojo_collection.find_one({"Discord Username": disc_username})
+    if not user:
+        return f"Username {disc_username} does not exists"
+    
     dojo_collection.update_one({"_id": disc_username}, {"$inc": {"Current Elo": elo_change}})
+    return "User elo updated successfully"
     
 def update_users_elo(disc_usernames, elo_changes):
     for disc_username, elo_change in zip(disc_usernames, elo_changes):
@@ -63,14 +80,14 @@ if __name__ == '__main__':
     items = pd.DataFrame(items)
     # print(items)
     
-    create_new_user('Test', 'LOL_Test', ['Top', 'Mid', 'Jungle', 'ADC', 'Support'], 'Jungle')
+    print(create_new_user('Test', 'LOL_Test', ['Top', 'Mid', 'Jungle', 'ADC', 'Support'], 'Jungle'))
     # items = dojo_collection.find({'Discord Username': 'Test'})
     items = dojo_collection.find()
     
     items = pd.DataFrame(items)
     print(items)
     
-    delete_user('Test')
+    print(delete_user('Test'))
     items = dojo_collection.find({'Discord Username': 'Test'})
     
     items = pd.DataFrame(items)
