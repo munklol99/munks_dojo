@@ -1,4 +1,4 @@
-from mongo_helpers import get_user_data, get_database
+from mongo_helpers import get_user_data, get_database, update_users_elo
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 
 class Match():
@@ -10,8 +10,9 @@ class Match():
         
         users = get_user_data(discord_users)
         print(users)
-        team1, team2 = self.balance_teams(users.to_dict('records'))
-        self.print_teams(team1, team2)
+        self.teams = self.balance_teams(users.to_dict('records'))
+        self.print_teams(self.teams[0], self.teams[1])
+        self.end_match(0)
     
     def print_teams(self, team1, team2):
         print('-----Team 1-----')
@@ -89,10 +90,15 @@ class Match():
                     team_b.append({**player, "assigned_role": role})
 
         return team_a, team_b
-    
+
     def end_match(self, winner):
-        pass
-    
+        elo_change = 20 # Make constant for now but will add enhancements later
+        loser = 0
+        if winner == 0:
+            loser = 1
+        update_users_elo([x['Discord Username'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['Discord Username'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])
+
 if __name__ == '__main__':
     dbname = get_database()
     

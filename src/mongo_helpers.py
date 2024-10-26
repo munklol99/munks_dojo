@@ -76,7 +76,7 @@ def update_elo(disc_username, elo_change):
     dojo_collection.update_one({"_id": user['_id']}, {"$inc": {"Current ELO": elo_change}})
     add_to_elo_history(disc_username=disc_username, new_elo=user['Current ELO'] + elo_change)
     
-    rerank_users() # Take this out later
+    # rerank_users() # Take this out later
     
     return "User elo updated successfully"
 
