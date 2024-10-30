@@ -4,7 +4,7 @@ import yaml
 import math
 
 # Load the config file
-with open('../config.yaml', 'r') as file:
+with open('/Users/Connor/Documents/SideProjects/munks_dojo/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 def get_database():
@@ -14,7 +14,7 @@ def get_database():
  
    # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
    client = MongoClient(CONNECTION_STRING)
- 
+   print('Successfully connected to DB')
    # Create the database for our example (we will use the same database throughout the tutorial
    return client['Dojo']
 
@@ -23,8 +23,10 @@ dbname = get_database()
 dojo_collection = dbname['userData']
 history_collection = dbname['user_elo_history']
 
-def create_new_user(disc_username, lol_username, roles, pref_role):
+def create_new_user(disc_username, lol_username):
+    print('Creating new user...', disc_username, lol_username)
     user = dojo_collection.find_one({"Discord Username": disc_username})
+    print('User found:', user)
     if user:
         return f"Username {disc_username} aready exists"
     
@@ -32,8 +34,6 @@ def create_new_user(disc_username, lol_username, roles, pref_role):
         'Discord Username': disc_username,
         'Username': lol_username,
         'Current ELO': config['account_creation']['default_elo'],
-        'Roles': roles,
-        'Preferred Role': pref_role,
         'Previous ELO': math.nan,
     }
     
@@ -82,7 +82,7 @@ def update_elo(disc_username, elo_change):
 
 def update_users_elo(disc_usernames, elo_changes):
     for disc_username, elo_change in zip(disc_usernames, elo_changes):
-        update_elo(disc_username=disc_username, elo_change=elo_change)
+        print(update_elo(disc_username=disc_username, elo_change=elo_change))
         
     rerank_users()
     
@@ -96,6 +96,14 @@ def get_user_data(disc_usernames):
     items = dojo_collection.find({'Discord Username': {'$in': disc_usernames}})
     df = pd.DataFrame(items)
     return df
+
+def get_user_data_by_name(disc_username):
+    user = dojo_collection.find_one({"Discord Username": disc_username})
+    return user
+
+def check_if_user_exists(disc_username):
+    user = dojo_collection.find_one({"Discord Username": disc_username})
+    return user is not None
 
 if __name__ == '__main__':
     dbname = get_database()
