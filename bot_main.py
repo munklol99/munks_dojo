@@ -245,7 +245,7 @@ async def view(ctx):
             f"- **Player:** {user_data['discord_name']} | "
             f"**Primary Role:** {user_data['primary_role'].capitalize()} | "
             f"**Secondary Role:** {user_data['secondary_role'].capitalize()} | "
-            f"**ELO:** {user_data['elo']} | **OP.GG:** {opgg_url}"
+            f"**ELO:** {user_data['elo']} | **OP.GG:** <{opgg_url}>"
         )
 
     # Join all message lines into one string and send it
