@@ -4,7 +4,7 @@ import yaml
 import math
 
 # Load the config file
-with open('/Users/Connor/Documents/SideProjects/munks_dojo/config.yaml', 'r') as file:
+with open('src/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 def get_database():
