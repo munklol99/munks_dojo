@@ -1,4 +1,4 @@
-from .mongo_helpers import get_user_data, get_database, update_users_elo
+from mongo_helpers import get_user_data, get_database, update_users_elo
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 
 class Match():
@@ -13,7 +13,7 @@ class Match():
         # self.teams = self.balance_teams(users.to_dict('records'))
         self.teams = self.balance_teams(users)
         self.print_teams(self.teams[0], self.teams[1])
-        self.end_match(0)
+        # self.end_match(0)
     
     def print_teams(self, team1, team2):
         elo_one = [x['elo'] for x in team1]
@@ -23,14 +23,14 @@ class Match():
         print(f'-----Team 1 Average ELO: {elo_one} -----')
         for player in team1:
             assigned_role = player['assigned_role']
-            username = player['name']
+            username = player['player_name']
             elo = player['elo']
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
         print(f'-----Team 2 Average ELO: {elo_two} -----')
         for player in team2:
             assigned_role = player['assigned_role']
-            username = player['name']
+            username = player['player_name']
             elo = player['elo']
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
@@ -103,29 +103,29 @@ class Match():
         loser = 0
         if winner == 0:
             loser = 1
-        update_users_elo([x['name'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
-        update_users_elo([x['name'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['player_name'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['player_name'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])
 
     def __str__(self) -> str:
         team_str = ""
         for i, team in enumerate(self.teams):
             team_str += f"\nTeam {i+1}:"
             for player in team:
-                team_str += f"\n  {player['name']} - {player['assigned_role']} (ELO: {player['elo']})"
+                team_str += f"\n  {player['player_name']} - {player['assigned_role']} (ELO: {player['elo']})"
         return team_str
 
 if __name__ == '__main__':
     test_users = [
-        {"name": "Luna", "primary_role": "Jungle", "secondary_role": "Top", "elo": 823},
-        {"name": "Ezra", "primary_role": "ADC", "secondary_role": "Support", "elo": 795},
-        {"name": "Kai", "primary_role": "Mid", "secondary_role": "Jungle", "elo": 841},
-        {"name": "Sage", "primary_role": "Top", "secondary_role": "Mid", "elo": 767},
-        {"name": "Finn", "primary_role": "Support", "secondary_role": "ADC", "elo": 756},
-        {"name": "Arya", "primary_role": "Mid", "secondary_role": "Support", "elo": 810},
-        {"name": "Nova", "primary_role": "Jungle", "secondary_role": "ADC", "elo": 835},
-        {"name": "Rey", "primary_role": "Top", "secondary_role": "Mid", "elo": 752},
-        {"name": "Zara", "primary_role": "ADC", "secondary_role": "Top", "elo": 847},
-        {"name": "Jace", "primary_role": "Support", "secondary_role": "Jungle", "elo": 779}
+        {"player_name": "Luna", "primary_role": "Jungle", "secondary_role": "Top", "elo": 823},
+        {"player_name": "Ezra", "primary_role": "ADC", "secondary_role": "Support", "elo": 795},
+        {"player_name": "Kai", "primary_role": "Mid", "secondary_role": "Jungle", "elo": 841},
+        {"player_name": "Sage", "primary_role": "Top", "secondary_role": "Mid", "elo": 767},
+        {"player_name": "Finn", "primary_role": "Support", "secondary_role": "ADC", "elo": 756},
+        {"player_name": "Arya", "primary_role": "Mid", "secondary_role": "Support", "elo": 810},
+        {"player_name": "Nova", "primary_role": "Jungle", "secondary_role": "ADC", "elo": 835},
+        {"player_name": "Rey", "primary_role": "Top", "secondary_role": "Mid", "elo": 752},
+        {"player_name": "Zara", "primary_role": "ADC", "secondary_role": "Top", "elo": 847},
+        {"player_name": "Jace", "primary_role": "Support", "secondary_role": "Jungle", "elo": 779}
     ]
 
     test = Match(discord_users=test_users)

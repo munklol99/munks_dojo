@@ -7,7 +7,7 @@ import json
 from urllib.parse import quote
 from bot_token import DISCORD_TOKEN
 from src.mongo_helpers import create_new_user, delete_user, check_if_user_exists, get_user_data_by_name
-from src.queue import Queue
+from src.dojo_queue import Queue
 
 bot = commands.Bot(command_prefix = '!', intents=discord.Intents.all())
 # CONSTANT: Moderator Role
@@ -283,6 +283,12 @@ async def remove(ctx, *, discord_name: str):
         await ctx.send(f"Player **{discord_name}** has been removed from the queue.")
     else:
         await ctx.send(f"No player with the name **{discord_name}** found in the queue.")
+
+
+@bot.command()
+async def ready(ctx):
+    await match_queue.ready_up(ctx.author.name)
+
 #### END QUEUE !!!
 
 print("Starting bot..." )
