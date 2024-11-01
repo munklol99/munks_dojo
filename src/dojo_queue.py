@@ -3,11 +3,17 @@ from match import Match
 import asyncio
 
 class Queue:
-    def __init__(self):
+    def __init__(self, store_match_callback=None):
         self.queue = []
         self.time_since_last_pop = 0.0
         self.last_time_someone_joined = None
         self.prequeue = []
+        self.store_match_callback = store_match_callback
+
+
+    async def setup(self):
+        """Perform asynchronous setup tasks."""
+        self.dequeuing_task = asyncio.create_task(self.monitor_queue())
 
     def __str__(self):
         string = '------ Current Queue ------ \n'
@@ -47,42 +53,62 @@ class Queue:
             self.leave_queue(discord_name)
         self.queue.append({'player_name':player_name, 'discord_name':discord_name, 'primary_role':prim_role, 'secondary_role':sec_role, 'elo':elo, 'discord_id':discord_id, 'ready': False})
         print(self)
-        if len(self.queue) >= 10:
-            self.dequeue()
 
         return
     
+    async def monitor_queue(self):
+        while True:
+            if len(self.queue) >= 10:
+                await self.dequeue()
+            await asyncio.sleep(1)  # Check every second
+    
     async def ready_up(self, discord_name):
-        for prequeue in self.prequeue:
-            for player in prequeue:
-                if player['discord_name'] == discord_name:
-                    player['ready'] = True
-                    print(f'{discord_name} is ready')
-                    return
-        print(f'{discord_name} is not in the queue')
+        for player in self.prequeue:
+            if player['discord_name'] == discord_name:
+                player['ready'] = True
+                print(f'{discord_name} is ready')
+                return
+        print(f'{discord_name} is not in the prequeue')
 
     async def dequeue(self, ctx=None):
         dequeued_items = self.queue[:10]
         self.queue = self.queue[10:]  # Remove dequeued items from queue
         names = [x['player_name'] for x in dequeued_items]
         # Wait for players to all ready up before starting match
-
-        readied_players = []
-
-        idx = len(self.prequeue)
-        self.prequeue.append(dequeued_items)
+        prequeue = dequeued_items.copy()
+        self.prequeue.extend(prequeue)
         # Wait for all players to be ready
-        while len(readied_players) != len(dequeued_items):
-            for player in self.prequeue[idx]:
+        try:
+            print(f'Waiting for {len(prequeue)} players to be ready')
+            await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=300)  # 5 minutes
+            self.time_since_last_pop = 0  # Reset time since last dequeue
+            print(f'Creating match with players: {names}')
+            match = Match(dequeued_items)
+            if self.store_match_callback:
+                self.store_match_callback(match)
+            return 'Match created'
+        except asyncio.TimeoutError:
+            print("Matchmaking timed out. Returning players to queue")
+            for player in prequeue:
                 if player['ready']:
+                    player['ready'] = False
+                    self.queue.insert(0, player)
+        except Exception as e:
+            print(e)
+            
+
+    async def wait_for_ready(self, prequeue):
+        readied_players = []
+        valid_names = [x['discord_name'] for x in prequeue]
+        while len(readied_players) != len(prequeue):
+            print(f'Readied up {len(readied_players)}/{len(prequeue)}')
+            check_list = [x for x in self.prequeue if x['discord_name'] in valid_names]
+            for player in check_list:
+                if player['ready'] and player['discord_name'] not in readied_players:
                     readied_players.append(player['discord_name'])
-            await asyncio.sleep(1)
+            await asyncio.sleep(1)  # Check every second
+        print(f'Readied up {len(readied_players)}/{len(prequeue)}')
 
-        print(f'Creating match with players: {names}')
-
-        self.time_since_last_pop = 0  # Reset time since last dequeue
-        match = Match(dequeued_items)
-        return match
     
     def start_match(self, players):
         player_list = []
@@ -93,7 +119,7 @@ class Queue:
         print(self)
         return match
         
-    def leave_queue(self, discord_name):
+    async def leave_queue(self, discord_name):
         self.queue = [x for x in self.queue if x['discord_name'] != discord_name]
         print(self)
     
@@ -108,7 +134,7 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 123456789
         })
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.enqueue({
             'player_name': 'munk',
             'discord_name': 'munk', 
@@ -117,7 +143,7 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 234567890
         })
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.enqueue({
             'player_name': 'munk1',
             'discord_name': 'munk1',
@@ -126,7 +152,7 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 345678901
         })
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.enqueue({
             'player_name': 'munk2',
             'discord_name': 'munk2',
@@ -135,7 +161,7 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 456789012
         })
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.enqueue({
             'player_name': 'munk3',
             'discord_name': 'munk3',
@@ -160,7 +186,7 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 789012345
         })
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.enqueue({
             'player_name': 'munk6',
             'discord_name': 'munk6',
@@ -201,24 +227,26 @@ if __name__ == '__main__':
             'elo': 800,
             'discord_id': 345678012
         })
+        await asyncio.sleep(2)
         await queue.ready_up('con.r')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk1')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk2')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk3')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk4')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk5')
-        time.sleep(2)
+        await asyncio.sleep(2)
         await queue.ready_up('munk6')
         await queue.ready_up('munk7')
         await queue.ready_up('munk8')
         await queue.ready_up('munk9')
         await queue.ready_up('munk10')
+        await asyncio.sleep(10)
 
     asyncio.run(main())
