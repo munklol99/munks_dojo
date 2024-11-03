@@ -30,6 +30,8 @@ async def store_match(match):
     active_matches[match_id] = match
     print(f"Match {match_id} stored.")
 
+channel = bot.get_channel(queue_channel_id)
+
 match_queue = Queue(store_match_callback=store_match)
 
 # Allows me to check if the bot is active in the server
@@ -295,13 +297,17 @@ async def remove(ctx, *, discord_name: str):
 
 @bot.command()
 async def ready(ctx):
-    await match_queue.ready_up(ctx.author.name)
+    await match_queue.ready_up(ctx.author.name, ctx.author)
+
+@bot.event
+async def on_ready():
+    channel = await bot.fetch_channel(queue_channel_id)
+    await match_queue.setup(channel, bot)
 
 #### END QUEUE !!!
 
 if __name__ == '__main__':
     async def main():
-        await match_queue.setup()
         print("Starting bot..." )
         # Always the last step
         await bot.start(DISCORD_TOKEN)

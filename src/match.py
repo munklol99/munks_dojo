@@ -1,44 +1,81 @@
 from mongo_helpers import get_user_data, get_database, update_users_elo
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 
+TEST_MODE = True
+
+in_game_role_id = 1299620439357788224
+registered_role_id = 1299615071131140116
+
+test_users = [
+    {"player_name": "Luna", "primary_role": "jungle", "secondary_role": "top", "elo": 823},
+    {"player_name": "Ezra", "primary_role": "adc", "secondary_role": "support", "elo": 795},
+    {"player_name": "Kai", "primary_role": "mid", "secondary_role": "jungle", "elo": 841},
+    {"player_name": "Sage", "primary_role": "top", "secondary_role": "mid", "elo": 767},
+    {"player_name": "Finn", "primary_role": "support", "secondary_role": "adc", "elo": 756},
+    {"player_name": "Arya", "primary_role": "mid", "secondary_role": "support", "elo": 810},
+    {"player_name": "Jace", "primary_role": "support", "secondary_role": "jungle", "elo": 779},
+    {"player_name": "Nova", "primary_role": "jungle", "secondary_role": "adc", "elo": 835},
+    {"player_name": "Rey", "primary_role": "top", "secondary_role": "mid", "elo": 752},
+    {"player_name": "Zara", "primary_role": "adc", "secondary_role": "top", "elo": 847},
+]
+
 class Match():
-    def __init__(self, discord_users: list):
+    def __init__(self, discord_users: list, bot=None, disc_bot=None):
         if len(discord_users) < 10:
             print(f"Not enough users to start a match {len(discord_users)} / 10")
         elif len(discord_users) > 10:
             print(f"Too many users to start a match {len(discord_users)} / 10")
         
         # users = get_user_data(discord_users)
+        print(discord_users)
         users = discord_users
+        if TEST_MODE:
+            users.extend(test_users[:10-len(users)])
         # self.teams = self.balance_teams(users.to_dict('records'))
+        self.bot = bot
+        self.disc_bot = disc_bot
         self.teams = self.balance_teams(users)
-        self.print_teams(self.teams[0], self.teams[1])
         # self.end_match(0)
+
+    async def assign_roles(self):
+        in_game_role = self.bot.guild.get_role(in_game_role_id)
+        for player in self.teams[0] + self.teams[1]:
+            if 'discord_id' in player.keys():
+                # user = self.disc_bot.get_user(player['discord_id'])
+                user = self.bot.guild.get_member(player['discord_id'])
+                await user.add_roles(in_game_role)
     
-    def print_teams(self, team1, team2):
+    async def print_teams(self):
+        team1, team2 = self.teams
         elo_one = [x['elo'] for x in team1]
         elo_two = [x['elo'] for x in team2]
         elo_one = round(sum(elo_one) / len(elo_one))
         elo_two = round(sum(elo_two) / len(elo_two))
+        message = f'-----Team 1 Average ELO: {elo_one} ----- \n'
         print(f'-----Team 1 Average ELO: {elo_one} -----')
         for player in team1:
             assigned_role = player['assigned_role']
-            username = player['player_name']
+            username = player['discord_id'] if 'discord_id' in player else player['player_name']
             elo = player['elo']
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
+            message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
         print(f'-----Team 2 Average ELO: {elo_two} -----')
+        message += f'-----Team 2 Average ELO: {elo_two} -----\n'
         for player in team2:
             assigned_role = player['assigned_role']
-            username = player['player_name']
+            username = player['discord_id'] if 'discord_id' in player else player['player_name']
             elo = player['elo']
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
+            message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
+        if self.bot:
+            await self.bot.send(message)
     
     def balance_teams(self, players):
         # Define teams and roles
         teams = [0, 1]  # Team A, Team B
-        roles = ["Top", "Mid", "Jungle", "ADC", "Support"]
+        roles = ["top", "mid", "jungle", "adc", "support"]
 
         # Initialize ILP problem
         prob = LpProblem("Team_Balancing", LpMaximize)

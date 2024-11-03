@@ -9,12 +9,16 @@ class Queue:
         self.last_time_someone_joined = None
         self.prequeue = []
         self.store_match_callback = store_match_callback
+        self.match_size = 1
+        self.bot = None
+        self.disc_bot = None
 
 
-    async def setup(self):
+    async def setup(self, channel, bot):
         """Perform asynchronous setup tasks."""
         self.dequeuing_task = asyncio.create_task(self.monitor_queue())
-
+        self.bot = channel
+        self.disc_bot = bot
     def __str__(self):
         string = '------ Current Queue ------ \n'
         string += f'Time since last queue pop: {round(self.time_since_last_pop)} seconds \n'
@@ -58,37 +62,51 @@ class Queue:
     
     async def monitor_queue(self):
         while True:
-            if len(self.queue) >= 10:
+            if len(self.queue) >= self.match_size:
                 await self.dequeue()
             await asyncio.sleep(1)  # Check every second
     
-    async def ready_up(self, discord_name):
+    async def ready_up(self, discord_name, discord_user):
         for player in self.prequeue:
             if player['discord_name'] == discord_name:
                 player['ready'] = True
-                print(f'{discord_name} is ready')
+                await self.bot.send(f'<@{discord_user.id}> is ready')
                 return
-        print(f'{discord_name} is not in the prequeue')
+        await self.bot.send(f'<@{discord_user.id}> is not in the prequeue')
 
     async def dequeue(self, ctx=None):
-        dequeued_items = self.queue[:10]
-        self.queue = self.queue[10:]  # Remove dequeued items from queue
+        dequeued_items = self.queue[:self.match_size]
+        self.queue = self.queue[self.match_size:]  # Remove dequeued items from queue
         names = [x['player_name'] for x in dequeued_items]
+        discord_ids = [x['discord_id'] for x in dequeued_items]
         # Wait for players to all ready up before starting match
         prequeue = dequeued_items.copy()
         self.prequeue.extend(prequeue)
         # Wait for all players to be ready
+        if self.bot:
+            message = ''
+            for d_id in discord_ids:
+                member = self.disc_bot.get_user(d_id)
+                message += f'<@{d_id}>, '
+            await self.bot.send(f'{message}Match found, please ready up with !ready')
         try:
             print(f'Waiting for {len(prequeue)} players to be ready')
-            await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=300)  # 5 minutes
-            self.time_since_last_pop = 0  # Reset time since last dequeue
-            print(f'Creating match with players: {names}')
-            match = Match(dequeued_items)
-            if self.store_match_callback:
-                self.store_match_callback(match)
-            return 'Match created'
+            wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=300)  # 5 minutes
+            if wait_result:
+                self.time_since_last_pop = 0  # Reset time since last dequeue
+                print(f'Creating match with players: {names}')
+                match = Match(dequeued_items, self.bot, self.disc_bot)
+                if self.store_match_callback:
+                    await self.store_match_callback(match)
+                await match.print_teams()
+                await match.assign_roles()
+                return 'Match created'
+            else:
+                await self.bot.send('Match was declined, continuing queue')
+                return 'Match not created'
         except asyncio.TimeoutError:
             print("Matchmaking timed out. Returning players to queue")
+            await self.bot.send('Matchmaking timed out. Returning players to queue')
             for player in prequeue:
                 if player['ready']:
                     player['ready'] = False
@@ -103,11 +121,14 @@ class Queue:
         while len(readied_players) != len(prequeue):
             print(f'Readied up {len(readied_players)}/{len(prequeue)}')
             check_list = [x for x in self.prequeue if x['discord_name'] in valid_names]
+            if len(check_list) != self.match_size:
+                return False
             for player in check_list:
                 if player['ready'] and player['discord_name'] not in readied_players:
                     readied_players.append(player['discord_name'])
             await asyncio.sleep(1)  # Check every second
         print(f'Readied up {len(readied_players)}/{len(prequeue)}')
+        return True
 
     
     def start_match(self, players):
@@ -115,12 +136,13 @@ class Queue:
         for player in players:
             p = {"name": player['player_name'], "primary_role": player['primary_role'], "secondary_role": player['secondary_role'], "elo": player['elo']}
             player_list.append(p)
-        match = Match(player_list)
+        match = Match(player_list, self.bot, self.disc_bot)
         print(self)
         return match
         
     async def leave_queue(self, discord_name):
         self.queue = [x for x in self.queue if x['discord_name'] != discord_name]
+        self.prequeue = [x for x in self.prequeue if x['discord_name'] != discord_name]
         print(self)
     
 if __name__ == '__main__':
