@@ -96,10 +96,10 @@ class Queue:
                 self.time_since_last_pop = 0  # Reset time since last dequeue
                 print(f'Creating match with players: {names}')
                 match = Match(dequeued_items, self.bot, self.disc_bot)
-                if self.store_match_callback:
-                    await self.store_match_callback(match)
                 await match.print_teams()
                 await match.assign_roles()
+                if self.store_match_callback:
+                    await self.store_match_callback(match)
                 return 'Match created'
             else:
                 await self.bot.send('Match was declined, continuing queue')

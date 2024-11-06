@@ -294,6 +294,13 @@ async def remove(ctx, *, discord_name: str):
     else:
         await ctx.send(f"No player with the name **{discord_name}** found in the queue.")
 
+@bot.command()
+async def end_match(ctx):
+    if ctx.channel.id != queue_channel_id:
+        await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
+        return
+
+    await match_queue.end_match()
 
 @bot.command()
 async def ready(ctx):

@@ -1,5 +1,6 @@
 from mongo_helpers import get_user_data, get_database, update_users_elo
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
+import asyncio
 
 TEST_MODE = True
 
@@ -35,7 +36,10 @@ class Match():
         self.bot = bot
         self.disc_bot = disc_bot
         self.teams = self.balance_teams(users)
-        # self.end_match(0)
+        self.players = users
+        for player in self.players:
+            player['winner_vote'] = None
+            
 
     async def assign_roles(self):
         in_game_role = self.bot.guild.get_role(in_game_role_id)
@@ -134,8 +138,36 @@ class Match():
                     team_b.append({**player, "assigned_role": role})
 
         return team_a, team_b
+    
+    async def wait_for_vote(self):
+        # This is called when a match is ended and players must type !vote <team_number> to vote for the winning team,
+        # needs at least 50% of players to vote for the winning team to end the match, otherwise if time runs out,
+        # the team with the most votes wins.
+        votes = []
+        seen = []
+        player_names = [x for x in self.players if x['discord_name']]
+        while len(votes) != self.match_size:
+            print(f'End match votes {len(votes)}/{self.match_size}')
+            for player in self.players:
+                if player['winner_vote'] and player['discord_name'] not in seen:
+                    seen.append(player['discord_name'])
+                    votes.append(player['winner_vote'])
+            if len([x for x in votes if x == 1]) > self.match_size // 2:
+                return
+            if len([x for x in votes if x == 2]) > self.match_size // 2:
+                return
+            await asyncio.sleep(1)  # Check every second
+        return
 
-    def end_match(self, winner):
+
+    async def end_match(self):
+        # once called give players 3 minutes to vote for the winning team
+        await asyncio.wait_for(self.wait_for_vote(), timeout=300)  # 5 minutes
+        votes = [x for x in self.players if x['winner_vote']]
+        # Get the most voted for team
+        team_one_votes = len([x for x in votes if x == 1])
+        team_two_votes = len([x for x in votes if x == 2])
+        winner =  0 if team_one_votes > team_two_votes else 1
         elo_change = 20 # Make constant for now but will add enhancements later
         loser = 0
         if winner == 0:
