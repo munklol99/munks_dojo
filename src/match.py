@@ -37,6 +37,7 @@ class Match():
         self.disc_bot = disc_bot
         self.teams = self.balance_teams(users)
         self.players = users
+        self.match_size = 1 #FOR TESTING
         for player in self.players:
             player['winner_vote'] = None
             
@@ -145,11 +146,11 @@ class Match():
         # the team with the most votes wins.
         votes = []
         seen = []
-        player_names = [x for x in self.players if x['discord_name']]
         while len(votes) != self.match_size:
             print(f'End match votes {len(votes)}/{self.match_size}')
             for player in self.players:
-                if player['winner_vote'] and player['discord_name'] not in seen:
+                # print('winner_vote', player['winner_vote'])
+                if player['winner_vote'] in [1,2] and player['discord_name'] not in seen:
                     seen.append(player['discord_name'])
                     votes.append(player['winner_vote'])
             if len([x for x in votes if x == 1]) > self.match_size // 2:
@@ -158,9 +159,27 @@ class Match():
                 return
             await asyncio.sleep(1)  # Check every second
         return
-
+    
+    async def assign_vote(self, vote_author, vote):
+        if vote in [1,2]:
+            for player in self.players:
+                if 'discord_id' in player.keys():
+                    disc_id = player['discord_id']
+                    vote_id = vote_author.id
+                    if disc_id == vote_id:
+                        print(f'Assigning vote {vote} to {vote_author}')
+                        player['winner_vote'] = vote
+                    # return
+        return
 
     async def end_match(self):
+        message = ''
+        for player in self.players:
+            if 'discord_id' in player.keys():
+                discord_id = player['discord_id']
+                message += f'<@{discord_id}>, '
+        await self.bot.send(f'{message}Please vote for the winning team with !vote <team_number>, valid values are 1 or 2')
+        print('Waiting for votes')
         # once called give players 3 minutes to vote for the winning team
         await asyncio.wait_for(self.wait_for_vote(), timeout=300)  # 5 minutes
         votes = [x for x in self.players if x['winner_vote']]
@@ -172,6 +191,9 @@ class Match():
         loser = 0
         if winner == 0:
             loser = 1
+
+        await self.bot.send(f'Team {winner} wins!')
+
         update_users_elo([x['player_name'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
         update_users_elo([x['player_name'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])
 

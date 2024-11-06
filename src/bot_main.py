@@ -23,12 +23,15 @@ in_queue_role_id = 1299617990513397771
 in_game_role_id = 1299620439357788224
 
 active_matches = {}
+discord_id_to_match_id = {}
 
 async def store_match(match):
     """Store the match in the active_matches dictionary."""
     match_id = len(active_matches) + 1  # Generate a unique match ID
     active_matches[match_id] = match
     print(f"Match {match_id} stored.")
+    for player in match.players:
+        discord_id_to_match_id[player['discord_id']] = match_id
 
 channel = bot.get_channel(queue_channel_id)
 
@@ -299,8 +302,18 @@ async def end_match(ctx):
     if ctx.channel.id != queue_channel_id:
         await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
         return
+    user_match_id = discord_id_to_match_id[ctx.author.id]
+    user_match = active_matches[user_match_id]
+    await user_match.end_match()
 
-    await match_queue.end_match()
+@bot.command()
+async def vote(ctx, vote: int):
+    if ctx.channel.id != queue_channel_id:
+        await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
+        return
+    user_match_id = discord_id_to_match_id[ctx.author.id]
+    user_match = active_matches[user_match_id]
+    await user_match.assign_vote(ctx.author, int(vote))
 
 @bot.command()
 async def ready(ctx):
