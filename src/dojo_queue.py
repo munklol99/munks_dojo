@@ -128,6 +128,8 @@ class Queue:
                     readied_players.append(player['discord_name'])
             await asyncio.sleep(1)  # Check every second
         print(f'Readied up {len(readied_players)}/{len(prequeue)}')
+        discord_ids = [x['discord_id'] for x in prequeue]
+        self.prequeue = [x for x in self.prequeue if x['discord_id'] not in discord_ids]
         return True
 
     

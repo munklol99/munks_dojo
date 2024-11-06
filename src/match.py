@@ -6,6 +6,7 @@ TEST_MODE = True
 
 in_game_role_id = 1299620439357788224
 registered_role_id = 1299615071131140116
+in_queue_role_id = 1299617990513397771
 
 test_users = [
     {"player_name": "Luna", "primary_role": "jungle", "secondary_role": "top", "elo": 823},
@@ -44,12 +45,14 @@ class Match():
 
     async def assign_roles(self):
         in_game_role = self.bot.guild.get_role(in_game_role_id)
+        in_queue_role = self.bot.guild.get_role(in_queue_role_id)
         for player in self.teams[0] + self.teams[1]:
             if 'discord_id' in player.keys():
                 # user = self.disc_bot.get_user(player['discord_id'])
                 user = self.bot.guild.get_member(player['discord_id'])
                 await user.add_roles(in_game_role)
-    
+                await user.remove_roles(in_queue_role)
+                
     async def print_teams(self):
         team1, team2 = self.teams
         elo_one = [x['elo'] for x in team1]
@@ -182,17 +185,18 @@ class Match():
         print('Waiting for votes')
         # once called give players 3 minutes to vote for the winning team
         await asyncio.wait_for(self.wait_for_vote(), timeout=300)  # 5 minutes
-        votes = [x for x in self.players if x['winner_vote']]
+        votes = [x['winner_vote'] for x in self.players if x['winner_vote']]
         # Get the most voted for team
         team_one_votes = len([x for x in votes if x == 1])
         team_two_votes = len([x for x in votes if x == 2])
+        print(f'Team 1 votes: {team_one_votes}, Team 2 votes: {team_two_votes}')
         winner =  0 if team_one_votes > team_two_votes else 1
         elo_change = 20 # Make constant for now but will add enhancements later
         loser = 0
         if winner == 0:
             loser = 1
 
-        await self.bot.send(f'Team {winner} wins!')
+        await self.bot.send(f'Team {winner+1} wins!')
 
         update_users_elo([x['player_name'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
         update_users_elo([x['player_name'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])

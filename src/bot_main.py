@@ -302,9 +302,23 @@ async def end_match(ctx):
     if ctx.channel.id != queue_channel_id:
         await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
         return
+    if ctx.author.id not in discord_id_to_match_id.keys():
+        await ctx.send(f"{ctx.author.mention}, you are not in a match.")
+        return
     user_match_id = discord_id_to_match_id[ctx.author.id]
     user_match = active_matches[user_match_id]
     await user_match.end_match()
+    del discord_id_to_match_id[ctx.author.id]
+    del active_matches[user_match_id]
+    in_game_role = ctx.guild.get_role(in_game_role_id)
+    in_queue_role = ctx.guild.get_role(in_queue_role_id)
+    if in_game_role and in_queue_role:
+        for player in user_match.players:
+            user = ctx.guild.get_member(player['discord_id'])
+            if user:
+                print('Removing in-game role')
+                await user.remove_roles(in_game_role)
+                await user.remove_roles(in_queue_role)
 
 @bot.command()
 async def vote(ctx, vote: int):
