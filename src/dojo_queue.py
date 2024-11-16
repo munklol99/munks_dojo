@@ -2,6 +2,8 @@ import time
 from match import Match
 import asyncio
 
+in_queue_role_id = 1299617990513397771
+
 class Queue:
     def __init__(self, store_match_callback=None):
         self.queue = []
@@ -20,6 +22,7 @@ class Queue:
         self.bot = channel
         self.disc_bot = bot
         self.leaderboard_channel = leaderboard_channel
+        self.in_queue_role = self.bot.guild.get_role(in_queue_role_id)
 
     def __str__(self):
         string = '------ Current Queue ------ \n'
@@ -111,8 +114,14 @@ class Queue:
             await self.bot.send('Matchmaking timed out. Returning players to queue')
             for player in prequeue:
                 if player['ready']:
+                    print('return')
                     player['ready'] = False
                     self.queue.insert(0, player)
+                else:
+                    if 'discord_id' in player.keys():
+                        user = self.bot.guild.get_member(player['discord_id'])
+                        await user.remove_roles(self.in_queue_role)
+
         except Exception as e:
             print(e)
             
