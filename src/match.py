@@ -9,16 +9,16 @@ registered_role_id = 1299615071131140116
 in_queue_role_id = 1299617990513397771
 
 test_users = [
-    {"player_name": "Luna", "primary_role": "jungle", "secondary_role": "top", "elo": 823},
+    {"player_name": "Luna", "primary_role": "jungle", "secondary_role": "top", "elo": 1100},
     {"player_name": "Ezra", "primary_role": "adc", "secondary_role": "support", "elo": 795},
     {"player_name": "Kai", "primary_role": "mid", "secondary_role": "jungle", "elo": 841},
     {"player_name": "Sage", "primary_role": "top", "secondary_role": "mid", "elo": 767},
     {"player_name": "Finn", "primary_role": "support", "secondary_role": "adc", "elo": 756},
-    {"player_name": "Arya", "primary_role": "mid", "secondary_role": "support", "elo": 810},
+    {"player_name": "Arya", "primary_role": "mid", "secondary_role": "support", "elo": 693},
     {"player_name": "Jace", "primary_role": "support", "secondary_role": "jungle", "elo": 779},
     {"player_name": "Nova", "primary_role": "jungle", "secondary_role": "adc", "elo": 835},
-    {"player_name": "Rey", "primary_role": "top", "secondary_role": "mid", "elo": 752},
-    {"player_name": "Zara", "primary_role": "adc", "secondary_role": "top", "elo": 847},
+    {"player_name": "Rey", "primary_role": "top", "secondary_role": "mid", "elo": 452},
+    {"player_name": "Zara", "primary_role": "adc", "secondary_role": "top", "elo": 680},
 ]
 
 class Match():
@@ -210,9 +210,28 @@ class Match():
         await self.leaderboard_channel.send(leaderboard_message)
 
     def get_leaderboard_message(self, leaderboard):
-        message = ''
+    # Define column widths
+        rank_width = 6
+        player_width = 22
+        elo_width = 6
+
+        # Initialize the message with Markdown code block
+        message = "```\n"
+
+        # Create the table header with proper alignment
+        message += f"| {'Rank':^{rank_width}} | {'Player':<{player_width}} | {'ELO':^{elo_width}} |\n"
+        message += f"|{'-' * (rank_width + 2)}|{'-' * (player_width + 2)}|{'-' * (elo_width + 2)}|\n"
+
+        # Add each player's data
         for player in leaderboard:
-            message += f'{player["Rank"]}. {player["Discord Username"]} - {player["Current ELO"]}\n'
+            rank = player["Rank"]
+            username = player["Discord Username"]
+            elo = player["Current ELO"]
+            message += f"| {str(rank):^{rank_width}} | {username:<{player_width}} | {str(elo):^{elo_width}} |\n"
+
+        # Close the Markdown code block
+        message += "```"
+
         return message
 
     def __str__(self) -> str:
