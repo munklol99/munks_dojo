@@ -1,5 +1,6 @@
 from mongo_helpers import get_user_data, get_database, update_users_elo, get_leaderboard
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
+import pandas as pd
 import asyncio
 
 TEST_MODE = True
@@ -210,27 +211,27 @@ class Match():
         await self.leaderboard_channel.send(leaderboard_message)
 
     def get_leaderboard_message(self, leaderboard):
-    # Define column widths
-        rank_width = 6
-        player_width = 22
-        elo_width = 6
+        # Convert the leaderboard data to a Pandas DataFrame
+        df = pd.DataFrame(leaderboard)
 
-        # Initialize the message with Markdown code block
-        message = "```\n"
+        # Rename the columns for clarity in the output
+        df.rename(columns={
+        "Rank": "Rank",
+        "Discord Username": "Player",
+        "Current ELO": "ELO"
+        }, inplace=True)
 
-        # Create the table header with proper alignment
-        message += f"| {'Rank':^{rank_width}} | {'Player':<{player_width}} | {'ELO':^{elo_width}} |\n"
-        message += f"|{'-' * (rank_width + 2)}|{'-' * (player_width + 2)}|{'-' * (elo_width + 2)}|\n"
+        # Drop the unwanted columns
+        df.drop(columns=["_id", "Player", "Discord ID", "Previous ELO"], inplace=True)
 
-        # Add each player's data
-        for player in leaderboard:
-            rank = player["Rank"]
-            username = player["Discord Username"]
-            elo = player["Current ELO"]
-            message += f"| {str(rank):^{rank_width}} | {username:<{player_width}} | {str(elo):^{elo_width}} |\n"
+        # Rearrange columns to move "Rank" to the beginning
+        df = df[["Rank", "Username", "ELO"]]
 
-        # Close the Markdown code block
-        message += "```"
+        # Generate the markdown table
+        markdown_table = df.to_markdown(index=False, tablefmt="github")
+
+        # Wrap the markdown table in a code block for Discord
+        message = f"```\n{markdown_table}\n```"
 
         return message
 
