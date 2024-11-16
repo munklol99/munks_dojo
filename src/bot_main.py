@@ -115,7 +115,7 @@ async def register(ctx):
             else:
                 await ctx.send("The registered role could not be found.")
         else:
-            await ctx.send("Invalid OP.GG link format. Please try again.")
+            await ctx.send("Invalid OP.GG link format. Please type !register and try again.")
     except discord.Forbidden:
         await ctx.send("I don't have permission to change your nickname or assign roles.")
     except discord.HTTPException as e:
