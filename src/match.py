@@ -1,4 +1,4 @@
-from mongo_helpers import get_user_data, get_database, update_users_elo
+from mongo_helpers import get_user_data, get_database, update_users_elo, get_leaderboard
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 import asyncio
 
@@ -22,7 +22,7 @@ test_users = [
 ]
 
 class Match():
-    def __init__(self, discord_users: list, bot=None, disc_bot=None):
+    def __init__(self, discord_users: list, bot=None, disc_bot=None, leaderboard_channel=None):
         if len(discord_users) < 10:
             print(f"Not enough users to start a match {len(discord_users)} / 10")
         elif len(discord_users) > 10:
@@ -36,6 +36,7 @@ class Match():
         # self.teams = self.balance_teams(users.to_dict('records'))
         self.bot = bot
         self.disc_bot = disc_bot
+        self.leaderboard_channel = leaderboard_channel
         self.teams = self.balance_teams(users)
         self.players = users
         self.match_size = 1 #FOR TESTING
@@ -54,7 +55,11 @@ class Match():
                 await user.remove_roles(in_queue_role)
                 
     async def print_teams(self):
+        order = ['top', 'jungle', 'mid', 'adc', 'support']
         team1, team2 = self.teams
+        # Sort teams by role order
+        team1 = sorted(team1, key=lambda x: order.index(x['assigned_role']))
+        team2 = sorted(team2, key=lambda x: order.index(x['assigned_role']))
         elo_one = [x['elo'] for x in team1]
         elo_two = [x['elo'] for x in team2]
         elo_one = round(sum(elo_one) / len(elo_one))
@@ -105,7 +110,7 @@ class Match():
             lpSum(
                 player_team_role[(i, team, role)]
                 * (
-                    2 if players[i]["primary_role"] == role else 1 if role == players[i]["secondary_role"] else 0
+                    2 if players[i]["primary_role"] == role else 1 if role == players[i]["secondary_role"] else 2 if players[i]["primary_role"] == "fill" else 1 if players[i]["secondary_role"] == "fill" else 0
                 )
                 for i in range(len(players))
                 for team in teams
@@ -198,8 +203,17 @@ class Match():
 
         await self.bot.send(f'Team {winner+1} wins!')
 
-        update_users_elo([x['player_name'] for x in self.teams[winner]], [elo_change for x in range(len(self.teams[winner]))])
-        update_users_elo([x['player_name'] for x in self.teams[loser]], [-elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['discord_id'] for x in self.teams[winner] if 'discord_id' in x.keys()], [elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [-elo_change for x in range(len(self.teams[winner]))])
+        leaderboard = get_leaderboard()
+        leaderboard_message = self.get_leaderboard_message(leaderboard)
+        await self.leaderboard_channel.send(leaderboard_message)
+
+    def get_leaderboard_message(self, leaderboard):
+        message = ''
+        for player in leaderboard:
+            message += f'{player["Rank"]}. {player["Discord Username"]} - {player["Current ELO"]}\n'
+        return message
 
     def __str__(self) -> str:
         team_str = ""
@@ -213,7 +227,7 @@ if __name__ == '__main__':
     test_users = [
         {"player_name": "Luna", "primary_role": "Jungle", "secondary_role": "Top", "elo": 823},
         {"player_name": "Ezra", "primary_role": "ADC", "secondary_role": "Support", "elo": 795},
-        {"player_name": "Kai", "primary_role": "Mid", "secondary_role": "Jungle", "elo": 841},
+        {"player_name": "Kai", "primary_role": "Jungle", "secondary_role": "Jungle", "elo": 841},
         {"player_name": "Sage", "primary_role": "Top", "secondary_role": "Mid", "elo": 767},
         {"player_name": "Finn", "primary_role": "Support", "secondary_role": "ADC", "elo": 756},
         {"player_name": "Arya", "primary_role": "Mid", "secondary_role": "Support", "elo": 810},

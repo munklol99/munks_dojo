@@ -20,10 +20,10 @@ def get_database():
 
 dbname = get_database()
     
-dojo_collection = dbname['userData']
-history_collection = dbname['user_elo_history']
+dojo_collection = dbname['users']
+history_collection = dbname['user_history']
 
-def create_new_user(disc_username, lol_username):
+def create_new_user(disc_username, lol_username, discord_id):
     print('Creating new user...', disc_username, lol_username)
     user = dojo_collection.find_one({"Discord Username": disc_username})
     print('User found:', user)
@@ -32,6 +32,7 @@ def create_new_user(disc_username, lol_username):
     
     user = {
         'Discord Username': disc_username,
+        'Discord ID': discord_id,
         'Username': lol_username,
         'Current ELO': config['account_creation']['default_elo'],
         'Previous ELO': math.nan,
@@ -39,6 +40,7 @@ def create_new_user(disc_username, lol_username):
     
     user_history = {
         'Discord Username': disc_username,
+        'Discord ID': discord_id,
         'Username': lol_username,
         'Elo History': [config['account_creation']['default_elo']]
     }
@@ -68,27 +70,31 @@ def rerank_users():
     for rank, doc in enumerate(sorted_docs, start=1):
         dojo_collection.update_one({"_id": doc["_id"]}, {"$set": {"Rank": rank}})
         
-def update_elo(disc_username, elo_change):
-    user = dojo_collection.find_one({"Discord Username": disc_username})
+def update_elo(discord_id, elo_change):
+    user = dojo_collection.find_one({"Discord ID": discord_id})
     if not user:
-        return f"Username {disc_username} does not exists"
+        return f"Discord ID {discord_id} does not exists"
     
     dojo_collection.update_one({"_id": user['_id']}, {"$inc": {"Current ELO": elo_change}})
-    add_to_elo_history(disc_username=disc_username, new_elo=user['Current ELO'] + elo_change)
+    add_to_elo_history(discord_id=discord_id, new_elo=user['Current ELO'] + elo_change)
     
     # rerank_users() # Take this out later
     
     return "User elo updated successfully"
 
-def update_users_elo(disc_usernames, elo_changes):
-    for disc_username, elo_change in zip(disc_usernames, elo_changes):
-        print(update_elo(disc_username=disc_username, elo_change=elo_change))
+def get_leaderboard():
+    sorted_docs = dojo_collection.find().sort("Current ELO", -1)
+    return sorted_docs
+
+def update_users_elo(discord_ids, elo_changes):
+    for discord_id, elo_change in zip(discord_ids, elo_changes):
+        print(update_elo(discord_id=discord_id, elo_change=elo_change))
         
     rerank_users()
     
-def add_to_elo_history(disc_username, new_elo):
+def add_to_elo_history(discord_id, new_elo):
     history_collection.update_one(
-        {"Discord Username": disc_username},
+        {"Discord ID": discord_id},
         {"$push": {"Elo History": new_elo}}
     )
     
@@ -108,8 +114,8 @@ def check_if_user_exists(disc_username):
 if __name__ == '__main__':
     dbname = get_database()
     
-    dojo_collection = dbname['userData']
-    history_collection = dbname['user_elo_history']
+    dojo_collection = dbname['users']
+    history_collection = dbname['user_history']
     
     items = dojo_collection.find({'Current ELO': {'$gt': 800}})
     # items = dojo_collection.find()

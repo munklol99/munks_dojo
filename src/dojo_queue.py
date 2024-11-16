@@ -14,11 +14,13 @@ class Queue:
         self.disc_bot = None
 
 
-    async def setup(self, channel, bot):
+    async def setup(self, channel, bot, leaderboard_channel):
         """Perform asynchronous setup tasks."""
         self.dequeuing_task = asyncio.create_task(self.monitor_queue())
         self.bot = channel
         self.disc_bot = bot
+        self.leaderboard_channel = leaderboard_channel
+
     def __str__(self):
         string = '------ Current Queue ------ \n'
         string += f'Time since last queue pop: {round(self.time_since_last_pop)} seconds \n'
@@ -95,7 +97,7 @@ class Queue:
             if wait_result:
                 self.time_since_last_pop = 0  # Reset time since last dequeue
                 print(f'Creating match with players: {names}')
-                match = Match(dequeued_items, self.bot, self.disc_bot)
+                match = Match(dequeued_items, self.bot, self.disc_bot, self.leaderboard_channel)
                 await match.print_teams()
                 await match.assign_roles()
                 if self.store_match_callback:

@@ -17,6 +17,7 @@ moderator_role = 1299607805380268082 # All Commands Require the "Moderator" Role
 registration_channel_id = 1299611607252602961 # Used to find the op.gg link
 queue_channel_id = 1299617038846787665
 bot_panel_id = 1299652549393256508
+leaderboard_channel_id = 1306123092812369930
 # CONSTANTS: Role IDs
 registered_role_id = 1299615071131140116
 in_queue_role_id = 1299617990513397771
@@ -105,7 +106,7 @@ async def register(ctx):
                 # Load and update the registration data
                 # ctx.author.id is the discord id
                 
-                create_new_user(disc_username=ctx.author.name, lol_username=profile_name)
+                create_new_user(disc_username=ctx.author.name, lol_username=profile_name, discord_id=ctx.author.id)
 
                 # Save the data and update the leaderboard
                 # await save_data(data, bot)
@@ -163,7 +164,7 @@ async def register_remove(ctx, *, discord_name: str):
 #### END REGISTRATION !!!
 
 #### BEGIN QUEUE !!!
-roles = {"top", "jungle", "mid", "adc", "support"}
+roles = {"top", "jungle", "mid", "adc", "support", "fill"}
 
 # Command: !join {primary role} {secondary role}
 @bot.command()
@@ -336,7 +337,8 @@ async def ready(ctx):
 @bot.event
 async def on_ready():
     channel = await bot.fetch_channel(queue_channel_id)
-    await match_queue.setup(channel, bot)
+    leaderboard_channel = await bot.fetch_channel(leaderboard_channel_id)
+    await match_queue.setup(channel, bot, leaderboard_channel)
 
 #### END QUEUE !!!
 
@@ -348,131 +350,3 @@ if __name__ == '__main__':
 
     asyncio.run(main())
 
-# if __name__ == '__main__':
-#     async def main():
-#         await match_queue.enqueue({
-#             'player_name': 'con.r',
-#             'discord_name': 'con.r',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 123456789
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.enqueue({
-#             'player_name': 'munk',
-#             'discord_name': 'munk', 
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 234567890
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.enqueue({
-#             'player_name': 'munk1',
-#             'discord_name': 'munk1',
-#             'primary_role': 'Jungle', 
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 345678901
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.enqueue({
-#             'player_name': 'munk2',
-#             'discord_name': 'munk2',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 456789012
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.enqueue({
-#             'player_name': 'munk3',
-#             'discord_name': 'munk3',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 567890123
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk4',
-#             'discord_name': 'munk4',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 678901234
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk5',
-#             'discord_name': 'munk5',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 789012345
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.enqueue({
-#             'player_name': 'munk6',
-#             'discord_name': 'munk6',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 890123456
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk7',
-#             'discord_name': 'munk7',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 901234567
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk8',
-#             'discord_name': 'munk8',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 123456780
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk9',
-#             'discord_name': 'munk9',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 234567801
-#         })
-#         await match_queue.enqueue({
-#             'player_name': 'munk10',
-#             'discord_name': 'munk10',
-#             'primary_role': 'Jungle',
-#             'secondary_role': 'Mid',
-#             'elo': 800,
-#             'discord_id': 345678012
-#         })
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('con.r')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk1')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk2')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk3')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk4')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk5')
-#         await asyncio.sleep(2)
-#         await match_queue.ready_up('munk6')
-#         await match_queue.ready_up('munk7')
-#         await match_queue.ready_up('munk8')
-#         await match_queue.ready_up('munk9')
-#         await match_queue.ready_up('munk10')
-#         await asyncio.sleep(2)
-#         print('active_matches', active_matches)
-#         await asyncio.sleep(10)
-
-#     asyncio.run(main())
