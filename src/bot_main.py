@@ -336,6 +336,28 @@ async def ready(ctx):
 
 @bot.event
 async def on_ready():
+    print(f"{bot.user.name} has connected to Discord and is ready to go!")
+
+    in_queue_role = discord.utils.get(bot.guilds[0].roles, id=in_queue_role_id) # Grabbing the in-queue role
+    in_game_role = discord.utils.get(bot.guilds[0].roles, id=in_game_role_id) # Grabbing the in-game role
+
+    if not in_queue_role or not in_game_role:
+        print("One or both roles were not found. Please check the role IDs.")
+        return
+    
+    for guild in bot.guilds: # Iterating through all users in the Discord server and removing the in-queue and in-game roles
+        for member in guild.members:
+            try:
+                if in_queue_role in member.roles or in_game_role in member.roles:
+                    await member.remove_roles(in_queue_role, in_game_role)
+                    print(f"Removed roles from {member.display_name}.")
+            except discord.Forbidden:
+                print(f"Permission error: Could not remove roles from {member.display_name}.")
+            except discord.HTTPException as e:
+                print(f"HTTP error: {e}")
+
+    print("All in-queue and in-game roles have been cleared.")
+
     channel = await bot.fetch_channel(queue_channel_id)
     leaderboard_channel = await bot.fetch_channel(leaderboard_channel_id)
     await match_queue.setup(channel, bot, leaderboard_channel)
@@ -345,8 +367,8 @@ async def on_ready():
 if __name__ == '__main__':
     async def main():
         print("Starting bot..." )
+        print("Bot has been started.")
         # Always the last step
         await bot.start(DISCORD_TOKEN)
 
     asyncio.run(main())
-
