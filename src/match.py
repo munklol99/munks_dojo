@@ -64,8 +64,8 @@ class Match():
         elo_two = [x['elo'] for x in team2]
         elo_one = round(sum(elo_one) / len(elo_one))
         elo_two = round(sum(elo_two) / len(elo_two))
-        message = f'-----Team 1 Average ELO: {elo_one} ----- \n'
-        print(f'-----Team 1 Average ELO: {elo_one} -----')
+        message = f'**-----Team 1 Average ELO: {elo_one} -----** \n'
+        print(f'**-----Team 1 Average ELO: {elo_one} -----**')
         for player in team1:
             assigned_role = player['assigned_role']
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
@@ -73,8 +73,8 @@ class Match():
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
             message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
-        print(f'-----Team 2 Average ELO: {elo_two} -----')
-        message += f'-----Team 2 Average ELO: {elo_two} -----\n'
+        print(f'**-----Team 2 Average ELO: {elo_two} -----**')
+        message += f'**-----Team 2 Average ELO: {elo_two} -----**\n'
         for player in team2:
             assigned_role = player['assigned_role']
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
