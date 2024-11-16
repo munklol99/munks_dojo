@@ -188,8 +188,12 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
         await ctx.send(f"{ctx.author.mention}, both roles must be one of: {', '.join(roles)}.")
         return
 
-    # # Allow same role only if both are "fill"
-    # TODO: Implement Fill option
+    # Prevent identical roles unless both are "fill"
+    if primary_role == secondary_role and primary_role != "fill":
+        await ctx.send(
+            f"{ctx.author.mention}, your primary and secondary roles cannot be the same unless both are set to 'fill'."
+        )
+        return
 
     # Check if the user is registered before assigning the role
     user_exists = check_if_user_exists(ctx.author.name)
