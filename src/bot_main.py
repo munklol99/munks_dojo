@@ -67,7 +67,7 @@ async def on_member_join(member):
     try:
         await member.send(
         f"Welcome {member.display_name}, to the {member.guild.name}! 🎉 We're so glad to have you here.\n\n"
-        "Please head over to https://discord.com/channels/1297951377317826570/1297952199187497100 to get your roles assigned in our matchmaking system so you can partipicate in our games!")
+        "Please head over to https://discord.com/channels/1297951377317826570/1297952199187497100 to get your registration completed so you can partipicate in our games!")
         print(f"Sent welcome message to {member.display_name}!")
     except Exception as e:
         print(f"Failed to send DM to {member.display_name}: They probably do not allow direct messages from server members enabled{e}")
@@ -87,7 +87,7 @@ async def register(ctx):
         await ctx.send("Please use the registration channel for this command.")
         return
 
-    await ctx.send(f"{ctx.author.mention}, please insert your OP.GG link!")
+    await ctx.send(f"{ctx.author.mention}, now please insert your OP.GG link! *(No need to re-type '!register')*")
 
     def check(msg):
         return msg.author == ctx.author and msg.channel == ctx.channel
