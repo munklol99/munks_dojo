@@ -187,10 +187,10 @@ class Match():
             if 'discord_id' in player.keys():
                 discord_id = player['discord_id']
                 message += f'<@{discord_id}>, '
-        await self.bot.send(f'{message}Please vote for the winning team with !vote <team_number>, valid values are 1 or 2')
+        await self.bot.send(f'{message}Please vote for the winning team with `!vote <team_number>`, valid values are 1 or 2')
         print('Waiting for votes')
-        # once called give players 3 minutes to vote for the winning team
-        await asyncio.wait_for(self.wait_for_vote(), timeout=180)  # 3 minutes
+        # once called give players 5 minutes to vote for the winning team
+        await asyncio.wait_for(self.wait_for_vote(), timeout=300)  # 5 minutes
         votes = [x['winner_vote'] for x in self.players if x['winner_vote']]
         # Get the most voted for team
         team_one_votes = len([x for x in votes if x == 1])
