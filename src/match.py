@@ -74,6 +74,10 @@ class Match():
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
             message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
+
+        print()  # Console line break
+        message += "\n"
+
         print(f'**-----Team 2 Average ELO: {elo_two} -----**')
         message += f'**-----Team 2 Average ELO: {elo_two} -----**\n'
         for player in team2:
@@ -83,6 +87,12 @@ class Match():
             role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
             print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
             message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
+
+        # Instructions for Lobby Creation (Until Tournament Codes are generated...)
+        print()
+        print("**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**")
+        message += "\n**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**"
+        
         if self.bot:
             await self.bot.send(message)
     
