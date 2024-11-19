@@ -225,7 +225,8 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
         await ctx.send(
             f"{ctx.author.mention}, please try again with the following format:\n\n"
             f"`!join {{primary role}} {{secondary role}}`\n\n"
-            f"For example: `!join top support`"
+            f"For example: `!join top support`\n\n"
+            f"**Available Roles:** Top, Jungle, Mid, ADC, Support, Fill"
         )
         return
 
@@ -233,7 +234,12 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
     secondary_role = secondary_role.lower()
 
     if primary_role not in roles or secondary_role not in roles:
-        await ctx.send(f"{ctx.author.mention}, both roles must be one of: {', '.join(roles)}.")
+        await ctx.send(
+            f"{ctx.author.mention}, please try again with the following format:\n\n"
+            f"`!join {{primary role}} {{secondary role}}`\n\n"
+            f"For example: `!join top support`\n\n"
+            f"**Available Roles:** Top, Jungle, Mid, ADC, Support, Fill"
+        )
         return
 
     # Prevent identical roles unless both are "fill"
