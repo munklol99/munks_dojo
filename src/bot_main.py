@@ -205,6 +205,21 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
     if ctx.channel.id != queue_channel_id:
         await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
         return
+    
+      # Check if user is already in a match
+    if ctx.author.id in discord_id_to_match_id:
+        await ctx.send(f"{ctx.author.mention}, you are already in a match.")
+        return
+    
+    # Check if user is already in the prequeue
+    if any(player['discord_id'] == ctx.author.id for player in match_queue.prequeue):
+        await ctx.send(f"{ctx.author.mention}, you are already in a ready-check for a match.")
+        return
+    
+    # Check if user is already in the queue
+    if any(player['discord_id'] == ctx.author.id for player in match_queue):
+        await ctx.send(f"{ctx.author.mention}, you are already in the queue.")
+        return
 
     if not primary_role or not secondary_role:
         await ctx.send(
@@ -264,15 +279,32 @@ async def leave(ctx):
         await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
         return
 
-    queue_role = ctx.guild.get_role(in_queue_role_id)
-    if queue_role:
-        await ctx.author.remove_roles(queue_role)
-
+    # Check if user is in the queue
+    if any(player['discord_id'] == ctx.author.id for player in match_queue.queue):
+        queue_role = ctx.guild.get_role(in_queue_role_id)
+        if queue_role:
+            await ctx.author.remove_roles(queue_role)
         await match_queue.leave_queue(ctx.author.name)
-
         await ctx.send(f"{ctx.author.mention}, you have left the queue.")
-    else:
-        await ctx.send("The queue role could not be found.")
+        return
+
+    # Check if user is in the prequeue
+    if any(player['discord_id'] == ctx.author.id for player in match_queue.prequeue):
+        queue_role = ctx.guild.get_role(in_queue_role_id)
+        if queue_role:
+            await ctx.author.remove_roles(queue_role)
+        await match_queue.leave_queue(ctx.author.name)
+        await ctx.send(f"{ctx.author.mention}, you have abandoned the !ready check. "
+                       f"Other players in the !ready check have been returned to the queue.")
+        return
+
+    # Check if user is in a match
+    if ctx.author.id in discord_id_to_match_id:
+        await ctx.send(f"{ctx.author.mention}, you cannot leave an active game.")
+        return
+
+    # If user is not in queue, prequeue, or a match
+    await ctx.send(f"{ctx.author.mention}, you are not in queue.")
 
 # Command: !view - View all players in queue
 @bot.command()
