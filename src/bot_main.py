@@ -92,7 +92,7 @@ async def register(ctx):
         await ctx.send(f"{ctx.author.mention}, you are already registered. Use `!update` to modify your information.")
         return
 
-    await ctx.send(f"{ctx.author.mention}, now please insert your OP.GG link! *(No need to re-type '!register')*")
+    await ctx.send(f"{ctx.author.mention}, now please insert your OP.GG link! *(No need to re-type `!register`)*")
 
     def check(msg):
         return msg.author == ctx.author and msg.channel == ctx.channel
@@ -111,13 +111,13 @@ async def register(ctx):
                 await ctx.author.add_roles(registered_role)
             await ctx.send(f"{ctx.author.mention}, your registration was successful!")
         else:
-            await ctx.send("Invalid OP.GG link format. Please type !register and try again.")
+            await ctx.send("Invalid OP.GG link format. Please type `!register` and try again.")
     except discord.Forbidden:
         await ctx.send("I don't have permission to change your nickname or assign roles.")
     except discord.HTTPException as e:
         await ctx.send(f"An error occurred: {e}")
     except TimeoutError:
-        await ctx.send("You took too long to respond. Please re-type !register to try again.")
+        await ctx.send("You took too long to respond. Please re-type `!register` to try again.")
 
 @bot.command()
 async def update(ctx):
@@ -130,7 +130,7 @@ async def update(ctx):
         await ctx.send(f"{ctx.author.mention}, you are not registered. Use `!register` to register first.")
         return
 
-    await ctx.send(f"{ctx.author.mention}, please insert your new OP.GG link to update your information. *(No need to re-type '!update')*")
+    await ctx.send(f"{ctx.author.mention}, please insert your new OP.GG link to update your information. *(No need to re-type `!update`)*")
 
     def check(msg):
         return msg.author == ctx.author and msg.channel == ctx.channel
