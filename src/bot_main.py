@@ -6,7 +6,7 @@ import os
 import json
 from urllib.parse import quote
 from bot_token import DISCORD_TOKEN
-from mongo_helpers import create_new_user, delete_user, check_if_user_exists, get_user_data_by_name
+from mongo_helpers import create_new_user, delete_user, check_if_user_exists, get_user_data_by_name, dojo_collection
 from dojo_queue import Queue
 import asyncio
 
@@ -87,6 +87,11 @@ async def register(ctx):
         await ctx.send("Please use the registration channel for this command.")
         return
 
+    # Check if the user is already registered
+    if check_if_user_exists(ctx.author.name):
+        await ctx.send(f"{ctx.author.mention}, you are already registered. Use `!update` to modify your information.")
+        return
+
     await ctx.send(f"{ctx.author.mention}, now please insert your OP.GG link! *(No need to re-type '!register')*")
 
     def check(msg):
@@ -97,23 +102,14 @@ async def register(ctx):
         profile_name = extract_profile_name(msg.content)
 
         if profile_name:
-            await ctx.author.edit(nick=profile_name)
 
+            create_new_user(disc_username=ctx.author.name,lol_username=profile_name,discord_id=ctx.author.id)
+
+            await ctx.author.edit(nick=profile_name)
             registered_role = ctx.guild.get_role(registered_role_id)
             if registered_role:
                 await ctx.author.add_roles(registered_role)
-
-                # Load and update the registration data
-                # ctx.author.id is the discord id
-                
-                create_new_user(disc_username=ctx.author.name, lol_username=profile_name, discord_id=ctx.author.id)
-
-                # Save the data and update the leaderboard
-                # await save_data(data, bot)
-
-                await ctx.send(f"{ctx.author.mention}, your registration was successful!")
-            else:
-                await ctx.send("The registered role could not be found.")
+            await ctx.send(f"{ctx.author.mention}, your registration was successful!")
         else:
             await ctx.send("Invalid OP.GG link format. Please type !register and try again.")
     except discord.Forbidden:
@@ -122,6 +118,43 @@ async def register(ctx):
         await ctx.send(f"An error occurred: {e}")
     except TimeoutError:
         await ctx.send("You took too long to respond. Please re-type !register to try again.")
+
+@bot.command()
+async def update(ctx):
+    if ctx.channel.id != registration_channel_id:
+        await ctx.send("Please use the registration channel for this command.")
+        return
+
+    # Check if the user is registered
+    if not check_if_user_exists(ctx.author.name):
+        await ctx.send(f"{ctx.author.mention}, you are not registered. Use `!register` to register first.")
+        return
+
+    await ctx.send(f"{ctx.author.mention}, please insert your new OP.GG link to update your information.")
+
+    def check(msg):
+        return msg.author == ctx.author and msg.channel == ctx.channel
+
+    try:
+        msg = await bot.wait_for("message", check=check, timeout=60.0)
+        profile_name = extract_profile_name(msg.content)
+
+        if profile_name:
+            # Update the user's OP.GG information in the database
+            dojo_collection.update_one(
+                {"Discord Username": ctx.author.name},
+                {"$set": {"Username": profile_name}}
+            )
+            await ctx.author.edit(nick=profile_name)
+            await ctx.send(f"{ctx.author.mention}, your OP.GG link and nickname have been successfully updated!")
+        else:
+            await ctx.send("Invalid OP.GG link format. Please type `!update` and try again.")
+    except discord.Forbidden:
+        await ctx.send("I don't have permission to change your nickname.")
+    except discord.HTTPException as e:
+        await ctx.send(f"An error occurred: {e}")
+    except TimeoutError:
+        await ctx.send("You took too long to respond. Please re-type `!update` to try again.")
 
 @bot.command()
 @commands.has_role(moderator_role)
