@@ -130,7 +130,7 @@ async def update(ctx):
         await ctx.send(f"{ctx.author.mention}, you are not registered. Use `!register` to register first.")
         return
 
-    await ctx.send(f"{ctx.author.mention}, please insert your new OP.GG link to update your information.")
+    await ctx.send(f"{ctx.author.mention}, please insert your new OP.GG link to update your information. *(No need to re-type '!update')*")
 
     def check(msg):
         return msg.author == ctx.author and msg.channel == ctx.channel
