@@ -50,6 +50,7 @@ class Match():
         self.match_size = 1 if TEST_MODE else 10
         for player in self.players:
             player['winner_vote'] = None
+        self.ending = False
             
 
     async def assign_roles(self):
@@ -220,6 +221,9 @@ class Match():
         return new_elos
 
     async def end_match(self, user):
+        if self.ending:
+            await self.bot.send(f'{user.mention}, match already ended!')
+            return False
         team1 = [x for x in self.teams[0] if 'discord_id' in x.keys()]
         team2 = [x for x in self.teams[1] if 'discord_id' in x.keys()]
         team1_highest_player = None
@@ -233,6 +237,7 @@ class Match():
         if user.id != team1_highest_player_id and user.id != team2_highest_player_id:
             await self.bot.send(f'{user.mention}, you are not the highest elo player on your team!')
             return False
+        self.ending = True
         message = ''
         for player in self.players:
             if 'discord_id' in player.keys():
