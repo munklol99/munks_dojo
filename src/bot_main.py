@@ -123,7 +123,9 @@ async def on_member_join(member):
     try:
         await member.send(
         f"Welcome {member.display_name}, to the {member.guild.name}! 🎉 We're so glad to have you here.\n\n"
-        "Please head over to https://discord.com/channels/1297951377317826570/1297952199187497100 to get your registration completed so you can partipicate in our games!")
+        "Please head over to https://discord.com/channels/1297951377317826570/1297952199187497100 and use `!register` to get your registration completed so you can partipicate in our games!\n\n"
+        f"Once you register, you can view all of the bot's commands by using `!faq` in any of the channels inside the server or by viewing them here https://discord.com/channels/1297951377317826570/1309057093168533544. If you need further assistance, feel free to reach out to any of the Moderators!\n\n"
+        "Have a great time! :smile:")
         print(f"Sent welcome message to {member.display_name}!")
     except Exception as e:
         print(f"Failed to send DM to {member.display_name}: They probably do not allow direct messages from server members enabled{e}")
