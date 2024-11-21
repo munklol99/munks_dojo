@@ -44,6 +44,15 @@ match_queue = Queue(store_match_callback=store_match)
 async def test(ctx):
     await ctx.send("Ready for testing! Fire away. :sunglasses:")
 
+@bot.command()
+async def faq(ctx):
+    await ctx.send("https://discord.com/channels/1297951377317826570/1309057093168533544")
+    await asyncio.sleep(1)
+    try:
+        await ctx.message.delete()
+    except discord.Forbidden:
+        await ctx.send("I need the 'Manage Messages' permission to delete commands.")
+
 # Wipe last X messages, including the command
 @bot.command()
 @commands.has_role(moderator_role)
