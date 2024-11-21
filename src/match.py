@@ -188,6 +188,9 @@ class Match():
         return
     
     async def assign_vote(self, vote_author, vote):
+        if not self.ending:
+            await self.bot.send(f'{vote_author.mention}, the match has not ended yet!')
+            return
         if vote in [1,2]:
             for player in self.players:
                 if 'discord_id' in player.keys():
