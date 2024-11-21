@@ -2,6 +2,7 @@ from mongo_helpers import get_user_data, get_database, update_users_elo, get_lea
 from pulp import LpMaximize, LpProblem, LpVariable, lpSum, LpInteger, value, PULP_CBC_CMD
 import pandas as pd
 import asyncio
+import numpy as np
 
 TEST_MODE = True
 
@@ -190,8 +191,42 @@ class Match():
                         player['winner_vote'] = vote
                     # return
         return
+    
+    async def get_elo_change(self, players):
+        z_score_ratio = 4
+        elos = [x['elo'] for x in players]
+        new_elos = {}
+        for i in range(len(players)):
+            p = players[i]
+            if 'discord_id' in p.keys():
+                others = [elo for j, elo in enumerate(elos) if j != i]
+                mean = np.mean(others)
+                std = np.std(others)
+                z_score = (p['elo'] - mean) / std
+                nearest_half = round(z_score * 2) / 2
+                print(f'Z-score: {z_score}, Nearest Half: {nearest_half}')
+                print(f'Mean: {mean}, Std: {std}')
+                if nearest_half > 0:
+                    elo_change = int(16 + (z_score_ratio * nearest_half)) 
+                else:
+                    elo_change = int(16 - (z_score_ratio * nearest_half))
+                new_elos[p['discord_id']] = elo_change
+        return new_elos
 
-    async def end_match(self):
+    async def end_match(self, user):
+        team1 = [x for x in self.teams[0] if 'discord_id' in x.keys()]
+        team2 = [x for x in self.teams[1] if 'discord_id' in x.keys()]
+        team1_highest_player = None
+        team2_highest_player = None
+        if len(team1) > 0:
+            team1_highest_player = max(team1, key=lambda x: x['elo'])
+        if len(team2) > 0:
+            team2_highest_player = max(team2, key=lambda x: x['elo'])
+        team1_highest_player_id = team1_highest_player['discord_id'] if team1_highest_player else None
+        team2_highest_player_id = team2_highest_player['discord_id'] if team2_highest_player else None
+        if user.id != team1_highest_player_id and user.id != team2_highest_player_id:
+            await self.bot.send(f'{user.mention}, you are not the highest elo player on your team!')
+            return False
         message = ''
         for player in self.players:
             if 'discord_id' in player.keys():
@@ -207,20 +242,21 @@ class Match():
         team_two_votes = len([x for x in votes if x == 2])
         print(f'Team 1 votes: {team_one_votes}, Team 2 votes: {team_two_votes}')
         winner =  0 if team_one_votes > team_two_votes else 1
-        elo_change = 20 # Make constant for now but will add enhancements later
+        elo_change = await self.get_elo_change(self.players)
         loser = 0
         if winner == 0:
             loser = 1
 
         await self.bot.send(f'Team {winner+1} wins!')
 
-        update_users_elo([x['discord_id'] for x in self.teams[winner] if 'discord_id' in x.keys()], [elo_change for x in range(len(self.teams[winner]))])
-        update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [-elo_change for x in range(len(self.teams[winner]))])
+        update_users_elo([x['discord_id'] for x in self.teams[winner] if 'discord_id' in x.keys()], [elo_change[x['discord_id']] for x in self.teams[winner] if 'discord_id' in x.keys()])
+        update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [-elo_change[x['discord_id']] for x in self.teams[loser] if 'discord_id' in x.keys()])
         leaderboard = get_leaderboard()
-        leaderboard_message = self.get_leaderboard_message(leaderboard)
+        leaderboard_message = self.get_leaderboard_message(leaderboard, elo_change)
         await self.leaderboard_channel.send(leaderboard_message)
+        return True
 
-    def get_leaderboard_message(self, leaderboard):
+    def get_leaderboard_message(self, leaderboard, elo_change):
         # Convert the leaderboard data to a Pandas DataFrame
         df = pd.DataFrame(leaderboard)
 
@@ -230,19 +266,17 @@ class Match():
         "Discord Username": "Player",
         "Current ELO": "ELO"
         }, inplace=True)
+        df['Elo Change'] = df['Discord ID'].map(elo_change)
 
         # Drop the unwanted columns
         df.drop(columns=["_id", "Player", "Discord ID", "Previous ELO"], inplace=True)
 
         # Rearrange columns to move "Rank" to the beginning
         df = df[["Rank", "Username", "ELO"]]
-
         # Generate the markdown table
         markdown_table = df.to_markdown(index=False, tablefmt="github")
-
         # Wrap the markdown table in a code block for Discord
         message = f"```\n{markdown_table}\n```"
-
         return message
 
     def __str__(self) -> str:
