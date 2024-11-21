@@ -1,3 +1,4 @@
 # Basic configuration file
 account_creation:
   default_elo: 800
+test_mode: true

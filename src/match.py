@@ -4,7 +4,13 @@ import pandas as pd
 import asyncio
 import numpy as np
 
-TEST_MODE = True
+import yaml
+
+# Load the config file
+with open('./config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+TEST_MODE = config['test_mode']
 
 in_game_role_id = 1299620439357788224
 registered_role_id = 1299615071131140116
@@ -41,7 +47,7 @@ class Match():
         self.leaderboard_channel = leaderboard_channel
         self.teams = self.balance_teams(users)
         self.players = users
-        self.match_size = 1 #FOR TESTING
+        self.match_size = 1 if TEST_MODE else 10
         for player in self.players:
             player['winner_vote'] = None
             

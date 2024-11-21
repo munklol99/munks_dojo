@@ -2,6 +2,14 @@ import time
 from match import Match
 import asyncio
 
+import yaml
+
+# Load the config file
+with open('./config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+TEST_MODE = config['test_mode']
+
 in_queue_role_id = 1299617990513397771
 
 class Queue:
@@ -11,7 +19,7 @@ class Queue:
         self.last_time_someone_joined = None
         self.prequeue = []
         self.store_match_callback = store_match_callback
-        self.match_size = 1
+        self.match_size = 1 if TEST_MODE else 10
         self.bot = None
         self.disc_bot = None
 
