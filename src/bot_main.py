@@ -22,6 +22,7 @@ leaderboard_channel_id = 1306123092812369930
 registered_role_id = 1299615071131140116
 in_queue_role_id = 1299617990513397771
 in_game_role_id = 1299620439357788224
+queue_blocked_role_id = 1309176852828651572
 
 active_matches = {}
 discord_id_to_match_id = {}
@@ -52,6 +53,52 @@ async def faq(ctx):
         await ctx.message.delete()
     except discord.Forbidden:
         await ctx.send("I need the 'Manage Messages' permission to delete commands.")
+
+@bot.command()
+@commands.has_role(moderator_role)
+async def block(ctx, discord_name: str):
+    blocked_role = ctx.guild.get_role(queue_blocked_role_id)
+    if ctx.channel.id != bot_panel_id:
+        await ctx.send("Please use the bot-panel channel for this command.")
+        return
+    
+    if not blocked_role:
+        await ctx.send("Blocked role not found.")
+        return
+
+    member = discord.utils.get(ctx.guild.members, name=discord_name)
+    if not member:
+        await ctx.send(f"User `{discord_name}` not found.")
+        return
+
+    if blocked_role in member.roles:
+        await ctx.send(f"{member.mention} is already blocked from joining the queue.")
+    else:
+        await member.add_roles(blocked_role)
+        await ctx.send(f"{member.mention} has been blocked from joining the queue.")
+
+@bot.command()
+@commands.has_role(moderator_role)
+async def unblock(ctx, discord_name: str):
+    blocked_role = ctx.guild.get_role(queue_blocked_role_id)
+    if ctx.channel.id != bot_panel_id:
+        await ctx.send("Please use the bot-panel channel for this command.")
+        return
+    
+    if not blocked_role:
+        await ctx.send("Blocked role not found.")
+        return
+
+    member = discord.utils.get(ctx.guild.members, name=discord_name)
+    if not member:
+        await ctx.send(f"User `{discord_name}` not found.")
+        return
+
+    if blocked_role not in member.roles:
+        await ctx.send(f"{member.mention} is not currently blocked from joining the queue.")
+    else:
+        await member.remove_roles(blocked_role)
+        await ctx.send(f"{member.mention} has been unblocked and can now join the queue.")
 
 # Wipe last X messages, including the command
 @bot.command()
@@ -213,6 +260,12 @@ roles = {"top", "jungle", "mid", "adc", "support", "fill"}
 async def join(ctx, primary_role: str = None, secondary_role: str = None):
     if ctx.channel.id != queue_channel_id:
         await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
+        return
+    
+    # Check if the user is blocked from joining the queue
+    blocked_role = ctx.guild.get_role(queue_blocked_role_id)
+    if blocked_role in ctx.author.roles:
+        await ctx.send(f"{ctx.author.mention}, you are currently blocked from joining the queue.")
         return
     
       # Check if user is already in a match
