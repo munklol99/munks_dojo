@@ -76,12 +76,12 @@ class Match():
         message = f'**-----Team 1 Average ELO: {elo_one} -----** \n'
         print(f'**-----Team 1 Average ELO: {elo_one} -----**')
         for player in team1:
-            assigned_role = player['assigned_role']
+            assigned_role = player['assigned_role'].capitalize()
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
             elo = player['elo']
-            role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
-            print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
-            message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
+            role_pref = 'Primary' if assigned_role.lower() == player['primary_role'] else 'Secondary' if assigned_role.lower() == player['secondary_role'] else 'Filled'
+            print(f'{assigned_role}: {username} ELO: {elo}')
+            message += f'{assigned_role}: <@{username}> ELO: {elo}\n'
 
         print()  # Console line break
         message += "\n"
@@ -89,12 +89,12 @@ class Match():
         print(f'**-----Team 2 Average ELO: {elo_two} -----**')
         message += f'**-----Team 2 Average ELO: {elo_two} -----**\n'
         for player in team2:
-            assigned_role = player['assigned_role']
+            assigned_role = player['assigned_role'].capitalize()
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
             elo = player['elo']
-            role_pref = 'Primary' if assigned_role == player['primary_role'] else 'Secondary' if assigned_role == player['secondary_role'] else 'Filled'
-            print(f'Role: {assigned_role} Player: {username} Elo: {elo} Preference: {role_pref}')
-            message += f'Role: {assigned_role} Player: <@{username}> Elo: {elo} Preference: {role_pref}\n'
+            role_pref = 'Primary' if assigned_role.lower() == player['primary_role'] else 'Secondary' if assigned_role.lower() == player['secondary_role'] else 'Filled'
+            print(f'{assigned_role}: {username} ELO: {elo}')
+            message += f'{assigned_role}: <@{username}> ELO: {elo}\n'
 
         # Instructions for Lobby Creation (Until Tournament Codes are generated...)
         print()
