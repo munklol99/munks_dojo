@@ -259,6 +259,7 @@ class Match():
         update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [-elo_change[x['discord_id']] for x in self.teams[loser] if 'discord_id' in x.keys()])
         leaderboard = get_leaderboard()
         leaderboard_message = self.get_leaderboard_message(leaderboard, elo_change)
+        await self.leaderboard_channel.purge(limit=5)
         await self.leaderboard_channel.send(leaderboard_message)
         return True
 
