@@ -408,6 +408,9 @@ async def vote(ctx, vote: int):
 
 @bot.command()
 async def ready(ctx):
+    if ctx.channel.id != queue_channel_id:
+        await ctx.send(f"{ctx.author.mention}, please use the queue channel for this command.")
+        return
     await match_queue.ready_up(ctx.author.name, ctx.author)
 
 @bot.event
