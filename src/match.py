@@ -217,10 +217,14 @@ class Match():
                 print(f'Z-score: {z_score}, Nearest Half: {nearest_half}')
                 print(f'Mean: {mean}, Std: {std}')
                 if nearest_half > 0:
-                    elo_change = int(16 + (z_score_ratio * nearest_half)) 
+                    nearest_half = abs(nearest_half)
+                    elo_change_win = int(16 - (z_score_ratio * nearest_half))
+                    elo_change_loss = int(16 + (z_score_ratio * nearest_half))
                 else:
-                    elo_change = int(16 - (z_score_ratio * nearest_half))
-                new_elos[p['discord_id']] = elo_change
+                    nearest_half = abs(nearest_half)
+                    elo_change_win = int(16 + (z_score_ratio * nearest_half))
+                    elo_change_loss = int(16 - (z_score_ratio * nearest_half))
+                new_elos[p['discord_id']] = (elo_change_win, -elo_change_loss)
         return new_elos
 
     async def end_match(self, user):
@@ -263,12 +267,22 @@ class Match():
 
         await self.bot.send(f'Team {winner+1} wins!')
 
-        update_users_elo([x['discord_id'] for x in self.teams[winner] if 'discord_id' in x.keys()], [elo_change[x['discord_id']] for x in self.teams[winner] if 'discord_id' in x.keys()])
-        update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [-elo_change[x['discord_id']] for x in self.teams[loser] if 'discord_id' in x.keys()])
+        update_users_elo([x['discord_id'] for x in self.teams[winner] if 'discord_id' in x.keys()], [elo_change[x['discord_id']][0] for x in self.teams[winner] if 'discord_id' in x.keys()])
+        update_users_elo([x['discord_id'] for x in self.teams[loser] if 'discord_id' in x.keys()], [elo_change[x['discord_id']][1] for x in self.teams[loser] if 'discord_id' in x.keys()])
         leaderboard = get_leaderboard()
         leaderboard_message = self.get_leaderboard_message(leaderboard, elo_change)
         await self.leaderboard_channel.purge(limit=5)
         await self.leaderboard_channel.send(leaderboard_message)
+        for player in self.teams[winner]:
+            if 'discord_id' in player.keys():
+                player_discord_id = player['discord_id']
+                player_elo_change = elo_change[player_discord_id][0]
+                await self.bot.send(f'<@{player_discord_id}> + {player_elo_change}')
+        for player in self.teams[loser]:
+            if 'discord_id' in player.keys():
+                player_discord_id = player['discord_id']
+                player_elo_change = elo_change[player_discord_id][1]
+                await self.bot.send(f'<@{player_discord_id}> {player_elo_change}')
         return True
 
     def get_leaderboard_message(self, leaderboard, elo_change):
@@ -282,7 +296,6 @@ class Match():
         "Current ELO": "ELO"
         }, inplace=True)
         df['Elo Change'] = df['Discord ID'].map(elo_change)
-
         # Drop the unwanted columns
         df.drop(columns=["_id", "Player", "Discord ID", "Previous ELO"], inplace=True)
 
