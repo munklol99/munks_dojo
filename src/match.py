@@ -51,6 +51,17 @@ class Match():
         for player in self.players:
             player['winner_vote'] = None
         self.ending = False
+
+        team1 = [x for x in self.teams[0] if 'discord_id' in x.keys()]
+        team2 = [x for x in self.teams[1] if 'discord_id' in x.keys()]
+        team1_highest_player = None
+        team2_highest_player = None
+        if len(team1) > 0:
+            team1_highest_player = max(team1, key=lambda x: x['elo'])
+        if len(team2) > 0:
+            team2_highest_player = max(team2, key=lambda x: x['elo'])
+        self.team1_highest_player_id = team1_highest_player['discord_id'] if team1_highest_player else None
+        self.team2_highest_player_id = team2_highest_player['discord_id'] if team2_highest_player else None
             
 
     async def assign_roles(self):
@@ -100,6 +111,7 @@ class Match():
         print()
         print("**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**")
         message += "\n**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**"
+        message += f'\n**<@{self.team1_highest_player_id}> or <@{self.team2_highest_player_id}> must use !end_match after the match ends.**'
         
         if self.bot:
             await self.bot.send(message)
@@ -231,17 +243,7 @@ class Match():
         if self.ending:
             await self.bot.send(f'{user.mention}, match already ended!')
             return False
-        team1 = [x for x in self.teams[0] if 'discord_id' in x.keys()]
-        team2 = [x for x in self.teams[1] if 'discord_id' in x.keys()]
-        team1_highest_player = None
-        team2_highest_player = None
-        if len(team1) > 0:
-            team1_highest_player = max(team1, key=lambda x: x['elo'])
-        if len(team2) > 0:
-            team2_highest_player = max(team2, key=lambda x: x['elo'])
-        team1_highest_player_id = team1_highest_player['discord_id'] if team1_highest_player else None
-        team2_highest_player_id = team2_highest_player['discord_id'] if team2_highest_player else None
-        if user.id != team1_highest_player_id and user.id != team2_highest_player_id:
+        if user.id != self.team1_highest_player_id and user.id != self.team2_highest_player_id:
             await self.bot.send(f'{user.mention}, you are not the highest elo player on your team!')
             return False
         self.ending = True
