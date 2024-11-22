@@ -30,10 +30,11 @@ discord_id_to_match_id = {}
 async def store_match(match):
     """Store the match in the active_matches dictionary."""
     match_id = len(active_matches) + 1  # Generate a unique match ID
+    await match.set_match_id(match_id)
     active_matches[match_id] = match
-    print(f"Match {match_id} stored.")
     for player in match.players:
-        discord_id_to_match_id[player['discord_id']] = match_id
+        if 'discord_id' in player.keys():
+            discord_id_to_match_id[player['discord_id']] = match_id
 
 channel = bot.get_channel(queue_channel_id)
 
@@ -449,7 +450,9 @@ async def end_match(ctx):
     user_match = active_matches[user_match_id]
     ended = await user_match.end_match(ctx.author)
     if ended:
-        del discord_id_to_match_id[ctx.author.id]
+        for player in user_match.players:
+            if 'discord_id' in player.keys():
+                del discord_id_to_match_id[player['discord_id']]
         del active_matches[user_match_id]
         in_game_role = ctx.guild.get_role(in_game_role_id)
         in_queue_role = ctx.guild.get_role(in_queue_role_id)

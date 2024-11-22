@@ -73,6 +73,9 @@ class Match():
                 user = self.bot.guild.get_member(player['discord_id'])
                 await user.add_roles(in_game_role)
                 await user.remove_roles(in_queue_role)
+
+    async def set_match_id(self, id):
+        self.match_id = id
                 
     async def print_teams(self):
         order = ['top', 'jungle', 'mid', 'adc', 'support']
@@ -84,7 +87,8 @@ class Match():
         elo_two = [x['elo'] for x in team2]
         elo_one = round(sum(elo_one) / len(elo_one))
         elo_two = round(sum(elo_two) / len(elo_two))
-        message = f'**-----Team 1 Average ELO: {elo_one} -----** \n'
+        message = f'**-----Match {self.match_id}-----** \n'
+        message += f'**-----Team 1 Average ELO: {elo_one} -----** \n'
         print(f'**-----Team 1 Average ELO: {elo_one} -----**')
         for player in team1:
             assigned_role = player['assigned_role'].capitalize()
