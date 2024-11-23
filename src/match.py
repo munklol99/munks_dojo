@@ -87,9 +87,9 @@ class Match():
         elo_two = [x['elo'] for x in team2]
         elo_one = round(sum(elo_one) / len(elo_one))
         elo_two = round(sum(elo_two) / len(elo_two))
-        message = f'**-----Match {self.match_id}-----** \n'
-        message += f'**-----Team 1 Average ELO: {elo_one} -----** \n'
-        print(f'**-----Team 1 Average ELO: {elo_one} -----**')
+        message = f'**-----Match ID: {self.match_id}-----** \n\n'
+        message += f'**-----Team 1 (Average ELO: {elo_one}) -----** \n'
+        print(f'**-----Team 1 (Average ELO: {elo_one}) -----**')
         for player in team1:
             assigned_role = player['assigned_role'].capitalize()
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
@@ -101,8 +101,8 @@ class Match():
         print()  # Console line break
         message += "\n"
 
-        print(f'**-----Team 2 Average ELO: {elo_two} -----**')
-        message += f'**-----Team 2 Average ELO: {elo_two} -----**\n'
+        print(f'**-----Team 2 (Average ELO: {elo_two}) -----**')
+        message += f'**-----Team 2 (Average ELO: {elo_two}) -----**\n'
         for player in team2:
             assigned_role = player['assigned_role'].capitalize()
             username = player['discord_id'] if 'discord_id' in player else player['player_name']
@@ -115,7 +115,7 @@ class Match():
         print()
         print("**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**")
         message += "\n**One player from this match must create the lobby as `Tournament Draft` and invite the other participants.**"
-        message += f'\n**<@{self.team1_highest_player_id}> or <@{self.team2_highest_player_id}> must use !end_match after the match ends.**'
+        message += f'\n\nOnce the match has ended, <@{self.team1_highest_player_id}> or <@{self.team2_highest_player_id}> must use `!end_match` to officially end the match!'
         
         if self.bot:
             await self.bot.send(message)
@@ -279,16 +279,17 @@ class Match():
         leaderboard_message = self.get_leaderboard_message(leaderboard, elo_change)
         await self.leaderboard_channel.purge(limit=5)
         await self.leaderboard_channel.send(leaderboard_message)
+        await self.bot.send("__**ELO Changes:**__")
         for player in self.teams[winner]:
             if 'discord_id' in player.keys():
                 player_discord_id = player['discord_id']
                 player_elo_change = elo_change[player_discord_id][0]
-                await self.bot.send(f'<@{player_discord_id}> + {player_elo_change}')
+                await self.bot.send(f'<@{player_discord_id}>: +{player_elo_change}')
         for player in self.teams[loser]:
             if 'discord_id' in player.keys():
                 player_discord_id = player['discord_id']
                 player_elo_change = elo_change[player_discord_id][1]
-                await self.bot.send(f'<@{player_discord_id}> {player_elo_change}')
+                await self.bot.send(f'<@{player_discord_id}>: {player_elo_change}')
         return True
 
     def get_leaderboard_message(self, leaderboard, elo_change):
