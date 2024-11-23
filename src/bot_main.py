@@ -141,8 +141,8 @@ async def cancel_match(ctx, match_id: int | None = None):
 
             discord_id_to_match_id.pop(discord_id, None)
 
-    await ctx.send(f"**Match ID: {match_id} has been canceled.** All players have been removed from the prequeue and in-game roles.")
-    await queue_channel.send(f"**Match ID: {match_id} has been canceled.** All players have been removed from the prequeue and in-game roles.")
+    await ctx.send(f"**Match ID: {match_id} has been canceled.** Players must re-join the queue.")
+    await queue_channel.send(f"**Match ID: {match_id} has been canceled.** Players must re-join the queue.")
     print(f"Match ID: {match_id} canceled by {ctx.author}.")
 
 # Wipe last X messages, including the command
