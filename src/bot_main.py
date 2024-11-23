@@ -101,6 +101,50 @@ async def unblock(ctx, discord_name: str):
         await member.remove_roles(blocked_role)
         await ctx.send(f"{member.mention} has been unblocked and can now join the queue.")
 
+@bot.command()
+@commands.has_role(moderator_role)
+async def cancel_match(ctx, match_id: int | None = None):
+# Ensure the command is used in the correct channel
+    if ctx.channel.id != bot_panel_id:
+        await ctx.send("Please use the bot-panel channel for this command.")
+        return
+
+    if match_id is None:
+        await ctx.send("Please include the Match ID. Example: `!cancel_match <match_id>`")
+        return
+
+    # Check if the match exists
+    if match_id not in active_matches:
+        await ctx.send(f"Match ID: {match_id} not found.")
+        return
+
+    # Proceed with match cancellation
+    match_to_cancel = active_matches.pop(match_id)
+    in_game_role = ctx.guild.get_role(in_game_role_id)
+    queue_channel = bot.get_channel(queue_channel_id)
+
+    for player in match_to_cancel.players:
+        if 'discord_id' in player.keys():
+            discord_id = player['discord_id']
+            match_queue.prequeue = [
+                p for p in match_queue.prequeue if p['discord_id'] != discord_id
+            ]
+
+            member = ctx.guild.get_member(discord_id)
+            if member and in_game_role:
+                try:
+                    await member.remove_roles(in_game_role)
+                except discord.Forbidden:
+                    print(f"Permission error: Could not remove in-game role for {member.display_name}")
+                except discord.HTTPException as e:
+                    print(f"HTTP error while removing in-game role for {member.display_name}: {e}")
+
+            discord_id_to_match_id.pop(discord_id, None)
+
+    await ctx.send(f"**Match ID: {match_id} has been canceled.** All players have been removed from the prequeue and in-game roles.")
+    await queue_channel.send(f"**Match ID: {match_id} has been canceled.** All players have been removed from the prequeue and in-game roles.")
+    print(f"Match ID: {match_id} canceled by {ctx.author}.")
+
 # Wipe last X messages, including the command
 @bot.command()
 @commands.has_role(moderator_role)
