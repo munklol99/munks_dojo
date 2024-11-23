@@ -101,7 +101,7 @@ class Queue:
             for d_id in discord_ids:
                 member = self.disc_bot.get_user(d_id)
                 message += f'<@{d_id}>, '
-            await self.bot.send(f'{message}Match found, please ready up with `!ready`')
+            await self.bot.send(f'{message}Match found, all players have 3-minutes to ready up with `!ready`.')
         try:
             print(f'Waiting for {len(prequeue)} players to be ready')
             wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=180)  # 3 minutes
