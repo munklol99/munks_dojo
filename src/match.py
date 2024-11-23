@@ -234,12 +234,12 @@ class Match():
                 print(f'Mean: {mean}, Std: {std}')
                 if nearest_half > 0:
                     nearest_half = abs(nearest_half)
-                    elo_change_win = int(16 - (z_score_ratio * nearest_half))
-                    elo_change_loss = int(16 + (z_score_ratio * nearest_half))
+                    elo_change_win = int(21 - (z_score_ratio * nearest_half)) # 50% winrate players will climb.
+                    elo_change_loss = int(14 + (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
                 else:
                     nearest_half = abs(nearest_half)
-                    elo_change_win = int(16 + (z_score_ratio * nearest_half))
-                    elo_change_loss = int(16 - (z_score_ratio * nearest_half))
+                    elo_change_win = int(21 + (z_score_ratio * nearest_half)) # 50% winrate players will climb.
+                    elo_change_loss = int(14 - (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
                 new_elos[p['discord_id']] = (elo_change_win, -elo_change_loss)
         return new_elos
 
@@ -256,9 +256,9 @@ class Match():
             if 'discord_id' in player.keys():
                 discord_id = player['discord_id']
                 message += f'<@{discord_id}>, '
-        await self.bot.send(f'{message}Please vote for the winning team with `!vote <team_number>`, valid values are 1 or 2')
+        await self.bot.send(f'{message}Please vote for the winning team with `!vote <team_number>`, valid values are 1 or 2.')
         print('Waiting for votes')
-        # once called give players 5 minutes to vote for the winning team
+        # once called, give players 5 minutes to vote for the winning team
         await asyncio.wait_for(self.wait_for_vote(), timeout=300)  # 5 minutes
         votes = [x['winner_vote'] for x in self.players if x['winner_vote']]
         # Get the most voted for team
