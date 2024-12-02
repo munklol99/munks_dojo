@@ -552,6 +552,13 @@ async def on_ready():
     leaderboard_channel = await bot.fetch_channel(leaderboard_channel_id)
     await match_queue.setup(channel, bot, leaderboard_channel)
 
+@bot.event
+async def on_member_remove(member):
+    # Check if the user is in the queue
+    if any(player['discord_id'] == member.id for player in match_queue.queue):
+        match_queue.queue = [player for player in match_queue.queue if player['discord_id'] != member.id]
+        print(f"Removed {member.display_name} from the queue.")
+
 #### END QUEUE !!!
 
 if __name__ == '__main__':
