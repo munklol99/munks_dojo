@@ -11,6 +11,7 @@ from dojo_queue import Queue
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+import pytz
 
 bot = commands.Bot(command_prefix = '!', intents=discord.Intents.all())
 # CONSTANT: Server ID
@@ -30,6 +31,9 @@ queue_blocked_role_id = 1309176852828651572
 
 active_matches = {}
 discord_id_to_match_id = {}
+
+# Define the EST timezone
+EST = pytz.timezone('US/Eastern')
 
 # Clear the queue and remove the in-queue role
 async def clear_queue_and_roles():
@@ -584,7 +588,7 @@ async def on_ready():
 
     # Scheduler for daily queue cleanup
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(clear_queue_and_roles, CronTrigger(hour=3, minute=0))  # Schedule at 3:00 AM daily
+    scheduler.add_job(clear_queue_and_roles, CronTrigger(hour=3, minute=0, timezone=EST))  # Schedule at 3:00 AM daily
     scheduler.start()
     print("Daily queue cleanup scheduled for 3:00 AM EST.")
 
