@@ -9,8 +9,12 @@ from bot_token import DISCORD_TOKEN
 from mongo_helpers import create_new_user, delete_user, check_if_user_exists, get_user_data_by_name, dojo_collection
 from dojo_queue import Queue
 import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 bot = commands.Bot(command_prefix = '!', intents=discord.Intents.all())
+# CONSTANT: Server ID
+GUILD_ID = 1299606789683286107
 # CONSTANT: Moderator Role
 moderator_role = 1299607805380268082 # All Commands Require the "Moderator" Role.
 # CONSTANTS: Channel IDs
@@ -26,6 +30,32 @@ queue_blocked_role_id = 1309176852828651572
 
 active_matches = {}
 discord_id_to_match_id = {}
+
+# Clear the queue and remove the in-queue role
+async def clear_queue_and_roles():
+    global match_queue
+    match_queue.queue.clear()  # Clear the queue
+    print("Queue cleared.")
+
+    # Remove the in-queue role from all users in the guild
+    guild = bot.get_guild(GUILD_ID)
+    if guild:
+        in_queue_role = guild.get_role(in_queue_role_id)
+        if in_queue_role:
+            for member in in_queue_role.members:
+                try:
+                    await member.remove_roles(in_queue_role)
+                    print(f"Removed 'in-queue' role from {member.display_name}.")
+                except Exception as e:
+                    print(f"Error removing role from {member.display_name}: {e}")
+    # Fetch the queue channel and send a message
+    try:
+        queue_channel = bot.get_channel(queue_channel_id)  # Fetch the channel by ID
+        if queue_channel:
+            await queue_channel.send("It's 3am EST, queue has been cleared. Sleep tight! :plove:")
+            print("Queue clearance message sent to the queue channel.")
+    except Exception as e:
+        print(f"Error sending message to the queue channel: {e}")
 
 async def store_match(match):
     """Store the match in the active_matches dictionary."""
@@ -551,6 +581,12 @@ async def on_ready():
     channel = await bot.fetch_channel(queue_channel_id)
     leaderboard_channel = await bot.fetch_channel(leaderboard_channel_id)
     await match_queue.setup(channel, bot, leaderboard_channel)
+
+    # Scheduler for daily queue cleanup
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(clear_queue_and_roles, CronTrigger(hour=3, minute=0))  # Schedule at 3:00 AM daily
+    scheduler.start()
+    print("Daily queue cleanup scheduled for 3:00 AM EST.")
 
 @bot.event
 async def on_member_remove(member):
