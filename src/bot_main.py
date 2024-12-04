@@ -83,11 +83,6 @@ async def test(ctx):
 @bot.command()
 async def faq(ctx):
     await ctx.send("https://discord.com/channels/1297951377317826570/1309057093168533544")
-    await asyncio.sleep(1)
-    try:
-        await ctx.message.delete()
-    except discord.Forbidden:
-        await ctx.send("I need the 'Manage Messages' permission to delete commands.")
 
 @bot.command()
 @commands.has_role(moderator_role)
@@ -246,7 +241,7 @@ async def register(ctx):
             registered_role = ctx.guild.get_role(registered_role_id)
             if registered_role:
                 await ctx.author.add_roles(registered_role)
-            await ctx.send(f"{ctx.author.mention}, your registration was successful!")
+            await ctx.send(f"{ctx.author.mention}, your registration was successful. Head on over to https://discord.com/channels/1297951377317826570/1297955329585188949 to start playing!")
         else:
             await ctx.send("Invalid OP.GG link format. Please type `!register` and try again.")
     except discord.Forbidden:
