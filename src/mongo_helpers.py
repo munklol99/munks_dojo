@@ -75,6 +75,11 @@ def update_elo(discord_id, elo_change):
     if not user:
         return f"Discord ID {discord_id} does not exists"
     
+    # Safeguard to ensure ELO doesn't drop below 0
+    current_elo = user.get("Current ELO", 0)
+    if current_elo + elo_change < 0:
+        elo_change = -current_elo  # Adjust elo_change to set ELO to 0
+    
     dojo_collection.update_one({"_id": user['_id']}, {"$inc": {"Current ELO": elo_change}})
     add_to_elo_history(discord_id=discord_id, new_elo=user['Current ELO'] + elo_change)
     
