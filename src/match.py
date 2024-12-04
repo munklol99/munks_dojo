@@ -228,8 +228,11 @@ class Match():
                 others = [elo for j, elo in enumerate(elos) if j != i]
                 mean = np.mean(others)
                 std = np.std(others)
-                z_score = (p['elo'] - mean) / std
-                nearest_half = round(z_score * 2) / 2
+                if std == 0:
+                    nearest_half = 0
+                else:
+                    z_score = (p['elo'] - mean) / std
+                    nearest_half = round(z_score * 2) / 2
                 print(f'Z-score: {z_score}, Nearest Half: {nearest_half}')
                 print(f'Mean: {mean}, Std: {std}')
                 if nearest_half > 0:
