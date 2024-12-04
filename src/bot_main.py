@@ -56,7 +56,7 @@ async def clear_queue_and_roles():
     try:
         queue_channel = bot.get_channel(queue_channel_id)  # Fetch the channel by ID
         if queue_channel:
-            await queue_channel.send("It's 3am EST, queue has been cleared. Sleep tight! :plove:")
+            await queue_channel.send("It's 3am EST, queue has been cleared. Sleep tight! :sleeping:")
             print("Queue clearance message sent to the queue channel.")
     except Exception as e:
         print(f"Error sending message to the queue channel: {e}")
