@@ -215,6 +215,15 @@ class Match():
                     if disc_id == vote_id:
                         print(f'Assigning vote {vote} to {vote_author}')
                         player['winner_vote'] = vote
+
+                        # Count current votes
+                        votes = [p.get('winner_vote') for p in self.players if p.get('winner_vote') is not None]
+                        vote_count = len(votes)
+
+                        # Send vote progress message
+                        await self.bot.send(
+                            f"Vote has been counted! {vote_count}/7 votes have been submitted!"
+                        )
                     # return
         return
     
