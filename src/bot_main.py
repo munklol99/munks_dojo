@@ -460,8 +460,11 @@ async def view(ctx):
     if not len(match_queue):
         await ctx.send("The queue is currently empty.")
         return
+    
+    # Count the number of players in the queue
+    num_players = len(match_queue.queue)
 
-    message_lines = ["__**Players in Queue:**__"]
+    message_lines = [f"**__Players in Queue:__ {num_players}**"]
     for user_data in match_queue:
         # Create a URL to the player's OP.GG profile
         player_name_url = quote(user_data['player_name'].replace('#', '-'))
