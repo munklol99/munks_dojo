@@ -237,6 +237,7 @@ class Match():
                 others = [elo for j, elo in enumerate(elos) if j != i]
                 mean = np.mean(others)
                 std = np.std(others)
+                nearest_half = 0
                 if std == 0:
                     nearest_half = 0
                 else:
