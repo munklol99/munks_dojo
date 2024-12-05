@@ -19,7 +19,7 @@ class Queue:
         self.last_time_someone_joined = None
         self.prequeue = []
         self.store_match_callback = store_match_callback
-        self.match_size = 1 if TEST_MODE else 10
+        self.match_size = 2 if TEST_MODE else 10
         self.bot = None
         self.disc_bot = None
 
@@ -104,7 +104,7 @@ class Queue:
             await self.bot.send(f'{message}Match found, all players have 3-minutes to ready up with `!ready`.')
         try:
             print(f'Waiting for {len(prequeue)} players to be ready')
-            wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=180)  # 3 minutes
+            wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=10)  # 3 minutes
             if wait_result:
                 self.time_since_last_pop = 0  # Reset time since last dequeue
                 print(f'Creating match with players: {names}')
@@ -121,7 +121,12 @@ class Queue:
             print("Matchmaking timed out. Returning players to queue")
             await self.bot.send('Matchmaking timed out. Returning players to queue')
             for player in prequeue:
-                if player['ready']:
+                ready = False
+                for p in self.prequeue:
+                    if p['discord_id'] == player['discord_id']:
+                        ready = p['ready']
+                        break
+                if ready:
                     print('return')
                     player['ready'] = False
                     self.queue.insert(0, player)
@@ -129,6 +134,8 @@ class Queue:
                     if 'discord_id' in player.keys():
                         user = self.bot.guild.get_member(player['discord_id'])
                         await user.remove_roles(self.in_queue_role)
+            discord_ids = [x['discord_id'] for x in prequeue]
+            self.prequeue = [x for x in self.prequeue if x['discord_id'] not in discord_ids]
 
         except Exception as e:
             print(e)

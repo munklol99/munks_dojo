@@ -47,7 +47,7 @@ class Match():
         self.leaderboard_channel = leaderboard_channel
         self.teams = self.balance_teams(users)
         self.players = users
-        self.match_size = 1 if TEST_MODE else 10
+        self.match_size = 2 if TEST_MODE else 10
         for player in self.players:
             player['winner_vote'] = None
         self.ending = False
