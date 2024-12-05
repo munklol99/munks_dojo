@@ -141,6 +141,8 @@ class Queue:
             print(f'Readied up {len(readied_players)}/{len(prequeue)}')
             check_list = [x for x in self.prequeue if x['discord_name'] in valid_names]
             if len(check_list) != self.match_size:
+                discord_ids = [x['discord_id'] for x in prequeue]
+                self.prequeue = [x for x in self.prequeue if x['discord_id'] not in discord_ids]
                 return False
             for player in check_list:
                 if player['ready'] and player['discord_name'] not in readied_players:
