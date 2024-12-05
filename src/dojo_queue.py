@@ -83,7 +83,9 @@ class Queue:
         for player in self.prequeue:
             if player['discord_name'] == discord_name:
                 player['ready'] = True
-                await self.bot.send(f'<@{discord_user.id}> is ready')
+                ready_count = sum(1 for p in self.prequeue if p.get('ready'))
+                total_players = len(self.prequeue)
+                await self.bot.send(f'<@{discord_user.id}> is ready! There are now {ready_count}/{total_players} are ready.')
                 return
         await self.bot.send(f'<@{discord_user.id}> is not part of a !ready check.')
 
