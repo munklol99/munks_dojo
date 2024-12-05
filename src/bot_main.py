@@ -85,6 +85,10 @@ async def faq(ctx):
     await ctx.send("https://discord.com/channels/1297951377317826570/1309057093168533544")
 
 @bot.command()
+async def queue(ctx):
+    await ctx.send("Did you mean to use `!join`?")
+
+@bot.command()
 @commands.has_role(moderator_role)
 async def block(ctx, discord_name: str):
     blocked_role = ctx.guild.get_role(queue_blocked_role_id)
