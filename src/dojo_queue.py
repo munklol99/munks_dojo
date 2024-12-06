@@ -117,13 +117,6 @@ class Queue:
                 await match.assign_roles()
                 return 'Match created'
             else:
-                for player in prequeue:
-                    # Add back to queue at front
-                    self.queue.insert(0, player)
-                    # Add queue role back
-                    if 'discord_id' in player.keys():
-                        user = self.bot.guild.get_member(player['discord_id'])
-                        await user.add_roles(self.in_queue_role)
                 await self.bot.send('Match was declined, continuing queue')
                 return 'Match not created'
         except asyncio.TimeoutError:
@@ -158,6 +151,15 @@ class Queue:
             check_list = [x for x in self.prequeue if x['discord_name'] in valid_names]
             if len(check_list) != self.match_size:
                 discord_ids = [x['discord_id'] for x in prequeue]
+                for player in prequeue:
+                    disc_ids = [x['discord_id'] for x in self.prequeue]
+                    if player['discord_id'] in disc_ids:
+                        # Add back to queue at front
+                        self.queue.insert(0, player)
+                        # Add queue role back
+                        if 'discord_id' in player.keys():
+                            user = self.bot.guild.get_member(player['discord_id'])
+                            await user.add_roles(self.in_queue_role)
                 self.prequeue = [x for x in self.prequeue if x['discord_id'] not in discord_ids]
                 return False
             for player in check_list:
