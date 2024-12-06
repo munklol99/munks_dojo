@@ -106,7 +106,7 @@ class Queue:
             await self.bot.send(f'{message}Match found, all players have 3-minutes to ready up with `!ready`.')
         try:
             print(f'Waiting for {len(prequeue)} players to be ready')
-            wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=10)  # 3 minutes
+            wait_result = await asyncio.wait_for(self.wait_for_ready(prequeue), timeout=180)  # 3 minutes
             if wait_result:
                 self.time_since_last_pop = 0  # Reset time since last dequeue
                 print(f'Creating match with players: {names}')
