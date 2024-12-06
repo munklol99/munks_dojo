@@ -12,22 +12,45 @@ import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 import pytz
+import yaml
+
+# Load the config file
+with open('./config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+TEST_MODE = config['test_mode']
+
 
 bot = commands.Bot(command_prefix = '!', intents=discord.Intents.all())
 # CONSTANT: Server ID
-GUILD_ID = 1299606789683286107
-# CONSTANT: Moderator Role
-moderator_role = 1299607805380268082 # All Commands Require the "Moderator" Role.
-# CONSTANTS: Channel IDs
-registration_channel_id = 1299611607252602961 # Used to find the op.gg link
-queue_channel_id = 1299617038846787665
-bot_panel_id = 1299652549393256508
-leaderboard_channel_id = 1306123092812369930
-# CONSTANTS: Role IDs
-registered_role_id = 1299615071131140116
-in_queue_role_id = 1299617990513397771
-in_game_role_id = 1299620439357788224
-queue_blocked_role_id = 1309176852828651572
+if TEST_MODE:
+    GUILD_ID = 1299606789683286107
+    # CONSTANT: Moderator Role
+    moderator_role = 1299607805380268082 # All Commands Require the "Moderator" Role.
+    # CONSTANTS: Channel IDs
+    registration_channel_id = 1299611607252602961 # Used to find the op.gg link
+    queue_channel_id = 1299617038846787665
+    bot_panel_id = 1299652549393256508
+    leaderboard_channel_id = 1306123092812369930
+    # CONSTANTS: Role IDs
+    registered_role_id = 1299615071131140116
+    in_queue_role_id = 1299617990513397771
+    in_game_role_id = 1299620439357788224
+    queue_blocked_role_id = 1309176852828651572
+else:
+    GUILD_ID = 1297951377317826570
+    # CONSTANT: Moderator Role
+    moderator_role = 1297954527579996263 # All Commands Require the "Moderator" Role.
+    # CONSTANTS: Channel IDs
+    registration_channel_id = 1297952199187497100 # Used to find the op.gg link
+    queue_channel_id = 1297955329585188949
+    bot_panel_id = 1298717656219914252
+    leaderboard_channel_id = 1297956003215708160
+    # CONSTANTS: Role IDs
+    registered_role_id = 1297954333710876733
+    in_queue_role_id = 1297971948302635088
+    in_game_role_id = 1309067485042970657
+    queue_blocked_role_id = 1309179725800804413
 
 active_matches = {}
 discord_id_to_match_id = {}
