@@ -117,6 +117,13 @@ class Queue:
                 await match.assign_roles()
                 return 'Match created'
             else:
+                for player in prequeue:
+                    # Add back to queue at front
+                    self.queue.insert(0, player)
+                    # Add queue role back
+                    if 'discord_id' in player.keys():
+                        user = self.bot.guild.get_member(player['discord_id'])
+                        await user.add_roles(self.in_queue_role)
                 await self.bot.send('Match was declined, continuing queue')
                 return 'Match not created'
         except asyncio.TimeoutError:
