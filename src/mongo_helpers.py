@@ -7,6 +7,8 @@ import math
 with open('./config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
+TEST_MODE = config['test_mode']
+
 def get_database():
  
    # Provide the mongodb atlas url to connect python to mongodb using pymongo
@@ -20,8 +22,8 @@ def get_database():
 
 dbname = get_database()
     
-dojo_collection = dbname['users']
-history_collection = dbname['user_history']
+dojo_collection = dbname['users'] if not TEST_MODE else dbname['test_users']
+history_collection = dbname['user_history'] if not TEST_MODE else dbname['test_user_history']
 
 def create_new_user(disc_username, lol_username, discord_id):
     print('Creating new user...', disc_username, lol_username)
