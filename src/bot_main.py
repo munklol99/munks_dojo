@@ -97,6 +97,19 @@ channel = bot.get_channel(queue_channel_id)
 
 match_queue = Queue(store_match_callback=store_match)
 
+async def daily_queue_check():
+    try:
+        # Fetch the queue channel
+        queue_channel = bot.get_channel(queue_channel_id)
+        if queue_channel:
+            # Send the message
+            await queue_channel.send(f"<@&{registered_role_id}> | Queue check! If you're interested in climbing the In-House ranks, don't forget to queue up with '!join'")
+            print("Daily queue check message sent.")
+        else:
+            print("Queue channel not found.")
+    except Exception as e:
+        print(f"Error sending daily queue check message: {e}")
+
 # Allows me to check if the bot is active in the server
 @bot.command()
 @commands.has_role(moderator_role)
@@ -613,7 +626,8 @@ async def on_ready():
 
     # Scheduler for daily queue cleanup
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(clear_queue_and_roles, CronTrigger(hour=3, minute=0, timezone=EST))  # Schedule at 3:00 AM daily
+    scheduler.add_job(clear_queue_and_roles, CronTrigger(hour=3, minute=0, timezone=EST))  # Scheduled Queue Clearing at 3:00 AM daily
+    scheduler.add_job(daily_queue_check, CronTrigger(hour=21, minute=0, timezone=EST))  # Scheduled Queue Reminder at 9:00 PM daily
     scheduler.start()
     print("Daily queue cleanup scheduled for 3:00 AM EST.")
 
