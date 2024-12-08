@@ -630,6 +630,7 @@ async def on_ready():
     scheduler.add_job(daily_queue_check, CronTrigger(hour=21, minute=0, timezone=EST))  # Scheduled Queue Reminder at 9:00 PM daily
     scheduler.start()
     print("Daily queue cleanup scheduled for 3:00 AM EST.")
+    print("Daily queue check scheduled for 9:00 PM EST.")
 
 @bot.event
 async def on_member_remove(member):
