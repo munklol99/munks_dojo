@@ -89,8 +89,20 @@ class Queue:
                 ready_count = sum(1 for p in self.prequeue if p.get('ready'))
                 total_players = len(self.prequeue)
                 await self.bot.send(f'<@{discord_user.id}> is ready! There are now {ready_count}/{total_players} players ready.')
+
+                # Show only players not ready
+                not_ready_players = [p for p in self.prequeue if not p.get('ready')]
+                if not_ready_players:
+                    prequeue_message = "**__Players needing to `!ready`:__**\n"
+                    for p in not_ready_players:
+                        prequeue_message += (
+                            f"- **Player:** {p['discord_name']} | **ELO:** {p['elo']}\n"
+                        )
+                    await self.bot.send(prequeue_message)
+                else:
+                    await self.bot.send("All players are ready.")
                 return
-        await self.bot.send(f'<@{discord_user.id}> is not part of a !ready check.')
+        await self.bot.send(f'<@{discord_user.id}> is not part of a `!ready` check.')
 
     async def dequeue(self, ctx=None):
         dequeued_items = self.queue[:self.match_size]
