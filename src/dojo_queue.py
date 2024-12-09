@@ -96,7 +96,7 @@ class Queue:
                     prequeue_message = "**__Players needing to `!ready`:__**\n"
                     for p in not_ready_players:
                         prequeue_message += (
-                            f"- **Player:** {p['discord_name']} | **ELO:** {p['elo']}\n"
+                            f"- **Player:** {p['discord_name']}\n"
                         )
                     await self.bot.send(prequeue_message)
                 else:
