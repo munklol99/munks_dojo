@@ -12,9 +12,14 @@ with open('./config.yaml', 'r') as file:
 
 TEST_MODE = config['test_mode']
 
-in_game_role_id = 1299620439357788224
-registered_role_id = 1299615071131140116
-in_queue_role_id = 1299617990513397771
+if TEST_MODE:
+    in_game_role_id = 1299620439357788224
+    registered_role_id = 1299615071131140116
+    in_queue_role_id = 1299617990513397771
+else:
+    in_game_role_id = 1309067485042970657
+    registered_role_id = 1297954333710876733
+    in_queue_role_id = 1297971948302635088
 
 test_users = [
     {"player_name": "Luna", "primary_role": "jungle", "secondary_role": "top", "elo": 1100},
