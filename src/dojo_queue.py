@@ -132,7 +132,7 @@ class Queue:
                         ready = p['ready']
                         break
                 if ready:
-                    print('return')
+                    print(f'Returning {player} to queue')
                     player['ready'] = False
                     self.queue.insert(0, player)
                 else:
