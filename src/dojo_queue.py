@@ -10,7 +10,10 @@ with open('./config.yaml', 'r') as file:
 
 TEST_MODE = config['test_mode']
 
-in_queue_role_id = 1299617990513397771
+if TEST_MODE:
+    in_queue_role_id = 1299617990513397771
+else:
+    in_queue_role_id = 1297971948302635088
 
 class Queue:
     def __init__(self, store_match_callback=None):
