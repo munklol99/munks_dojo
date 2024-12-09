@@ -453,6 +453,7 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
             f"{ctx.author.mention}, you have joined the queue as **Primary:** {primary_role.capitalize()} "
             f"**/** **Secondary:** {secondary_role.capitalize()}!"
         )
+        await view(ctx) # Send the View Command after a player joins queue
     else:
         await ctx.send("The queue role could not be found.")
 
@@ -470,6 +471,7 @@ async def leave(ctx):
             await ctx.author.remove_roles(queue_role)
         await match_queue.leave_queue(ctx.author.name)
         await ctx.send(f"{ctx.author.mention}, you have left the queue.")
+        await view(ctx)
         return
 
     # Check if user is in the prequeue
