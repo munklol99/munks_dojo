@@ -298,6 +298,7 @@ class Match():
         leaderboard_message = self.get_leaderboard_message(leaderboard, elo_change)
         await self.leaderboard_channel.purge(limit=5)
         await self.leaderboard_channel.send(leaderboard_message)
+        print("Leaderboard has been posted!") # Debug to check if leaderboard sent
         await self.bot.send("__**ELO Changes:**__")
         for player in self.teams[winner]:
             if 'discord_id' in player.keys():
