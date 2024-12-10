@@ -13,6 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 import pytz
 import yaml
+from role_alternatives import get_standard_role
 
 # Load the config file
 with open('./config.yaml', 'r') as file:
@@ -399,24 +400,18 @@ async def join(ctx, primary_role: str = None, secondary_role: str = None):
         await ctx.send(f"{ctx.author.mention}, you are already in the queue.")
         return
 
-    if not primary_role or not secondary_role:
+    primary_role = get_standard_role(primary_role)
+    secondary_role = get_standard_role(secondary_role) if secondary_role else None
+
+    # Autofill both roles if primary is "fill"
+    if primary_role == "fill":
+        secondary_role = "fill"
+
+    if not primary_role or not secondary_role or primary_role not in roles or secondary_role not in roles:
         await ctx.send(
             f"{ctx.author.mention}, please try again with the following format:\n\n"
             f"`!join {{primary role}} {{secondary role}}`\n\n"
-            f"For example: `!join top support`\n\n"
-            f"**Available Roles:** Top, Jungle, Mid, ADC, Support, Fill"
-        )
-        return
-
-    primary_role = primary_role.lower()
-    secondary_role = secondary_role.lower()
-
-    if primary_role not in roles or secondary_role not in roles:
-        await ctx.send(
-            f"{ctx.author.mention}, please try again with the following format:\n\n"
-            f"`!join {{primary role}} {{secondary role}}`\n\n"
-            f"For example: `!join top support`\n\n"
-            f"**Available Roles:** Top, Jungle, Mid, ADC, Support, Fill"
+            f"For example: `!join top support`"
         )
         return
 
