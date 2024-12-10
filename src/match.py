@@ -233,7 +233,8 @@ class Match():
         return
     
     async def get_elo_change(self, players):
-        z_score_ratio = 4
+        z_score_ratio = 3.5
+        min_elo_gain = 12 # Default lowest ELO you can gain is 12
         elos = [x['elo'] for x in players]
         new_elos = {}
         for i in range(len(players)):
@@ -252,12 +253,12 @@ class Match():
                 print(f'Mean: {mean}, Std: {std}')
                 if nearest_half > 0:
                     nearest_half = abs(nearest_half)
-                    elo_change_win = int(21 - (z_score_ratio * nearest_half)) # 50% winrate players will climb.
-                    elo_change_loss = int(14 + (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
+                    elo_change_win = max(int(28 - (z_score_ratio * nearest_half)), min_elo_gain) # 50% winrate players will climb.
+                    elo_change_loss = int(11 + (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
                 else:
                     nearest_half = abs(nearest_half)
-                    elo_change_win = int(21 + (z_score_ratio * nearest_half)) # 50% winrate players will climb.
-                    elo_change_loss = int(14 - (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
+                    elo_change_win = max(int(28 - (z_score_ratio * nearest_half)), min_elo_gain) # 50% winrate players will climb.
+                    elo_change_loss = int(11 - (z_score_ratio * nearest_half)) # If you are 50% player, you will only lose 14. Prevents people from being +/- the same elo after a win --> loss
                 new_elos[p['discord_id']] = (elo_change_win, -elo_change_loss)
         return new_elos
 
